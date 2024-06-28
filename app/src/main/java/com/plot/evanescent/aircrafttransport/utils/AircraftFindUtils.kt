@@ -21,7 +21,7 @@ class AircraftFindUtils {
                 "fooey",
                 "annex" -> true
 
-                "dimly" -> AircraftAdUtils.lest == "1" || (AircraftAdUtils.lest == "2" &&
+                "dimily" -> AircraftAdUtils.lest == "1" || (AircraftAdUtils.lest == "2" &&
                         AircraftUtils.aircraftFb() == "user1")
 
                 "build",
@@ -36,7 +36,7 @@ class AircraftFindUtils {
             return when(name) {
                 "annex" -> AircraftAdUtils.annexLoad.ad != null &&
                         System.currentTimeMillis() - AircraftAdUtils.annexLoad.dt < 3600000
-                "dimly" -> AircraftAdUtils.dimilyLoad.ad != null &&
+                "dimily" -> AircraftAdUtils.dimilyLoad.ad != null &&
                         System.currentTimeMillis() - AircraftAdUtils.dimilyLoad.dt < 3600000
                 "fooey" -> AircraftAdUtils.fooeyLoad.ad != null &&
                         System.currentTimeMillis() - AircraftAdUtils.fooeyLoad.dt < 3600000
@@ -51,7 +51,7 @@ class AircraftFindUtils {
         fun adLoading(name: String): Boolean {
             return when(name) {
                 "annex" -> AircraftAdUtils.annexLoad.loading
-                "dimly" -> AircraftAdUtils.dimilyLoad.loading
+                "dimily" -> AircraftAdUtils.dimilyLoad.loading
                 "fooey" -> AircraftAdUtils.fooeyLoad.loading
                 "build" -> AircraftAdUtils.buildLoad.loading
                 "young" -> AircraftAdUtils.youngLoad.loading
@@ -73,7 +73,7 @@ class AircraftFindUtils {
         fun getLoadAd(name: String): AircraftLoadAd? {
             return when(name) {
                 "annex" -> AircraftAdUtils.annexLoad
-                "dimly" -> AircraftAdUtils.dimilyLoad
+                "dimily" -> AircraftAdUtils.dimilyLoad
                 "fooey" -> AircraftAdUtils.fooeyLoad
                 "build" -> AircraftAdUtils.buildLoad
                 "young" -> AircraftAdUtils.youngLoad
@@ -227,12 +227,15 @@ class AircraftFindUtils {
                                 Date()
                             )
                             if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                                AircraftAdUtils.aircraftAdMax.nC ++
+                                AircraftAdUtils.aircraftAdMax.nC += 1
                             } else {
                                 AircraftAdUtils.aircraftAdMax.dt = date
                                 AircraftAdUtils.aircraftAdMax.nC = 1
                                 AircraftAdUtils.aircraftAdMax.nS = 0
                             }
+                            App.myApplication.updateNC(AircraftAdUtils.aircraftAdMax.nC)
+                            App.myApplication.updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                            App.myApplication.updateDT(AircraftAdUtils.aircraftAdMax.dt)
                         }
 
                         override fun onAdFailedToLoad(p0: LoadAdError) {

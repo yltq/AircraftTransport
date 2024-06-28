@@ -85,6 +85,7 @@ object ProfileManager {
                 it.password = password
                 it.cName = cName
                 it.nName = nName
+                it.nCode = nCode
                 it.inSmart = true
                 it
             }

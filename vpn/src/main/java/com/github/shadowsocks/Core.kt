@@ -109,14 +109,17 @@ object Core : Configuration.Provider {
             PendingIntent.getActivity(it, 0, Intent(it, configureClass.java)
                     .setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT), PendingIntent.FLAG_IMMUTABLE)
         }
-
-        if (Build.VERSION.SDK_INT >= 24) {  // migrate old files
-            deviceStorage.moveDatabaseFrom(app, Key.DB_PUBLIC)
-            val old = Acl.getFile(Acl.CUSTOM_RULES_USER, app)
-            if (old.canRead()) {
-                Acl.getFile(Acl.CUSTOM_RULES_USER).writeText(old.readText())
-                old.delete()
+        try {
+            if (Build.VERSION.SDK_INT >= 24) {  // migrate old files
+                deviceStorage.moveDatabaseFrom(app, Key.DB_PUBLIC)
+                val old = Acl.getFile(Acl.CUSTOM_RULES_USER, app)
+                if (old.canRead()) {
+                    Acl.getFile(Acl.CUSTOM_RULES_USER).writeText(old.readText())
+                    old.delete()
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         // overhead of debug mode is minimal: https://github.com/Kotlin/kotlinx.coroutines/blob/f528898/docs/debugging.md#debug-mode

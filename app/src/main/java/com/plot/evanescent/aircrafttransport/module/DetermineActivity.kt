@@ -31,7 +31,7 @@ class DetermineActivity : AppCompatActivity() {
         App.myApplication.getNetViewModel().aircraftGetHost()
         App.myApplication.getNetViewModel().aircraftGetServer()
         App.myApplication.getNetViewModel().aircraftMyRefer()
-        App.myApplication.aircraftAdUtils.fabulousLoadNative("dimly") {}
+        App.myApplication.aircraftAdUtils.fabulousLoadNative("dimily") {}
         App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("build", false)
         App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("annex", true)
         onBackPressedDispatcher.addCallback( object : OnBackPressedCallback(true) {

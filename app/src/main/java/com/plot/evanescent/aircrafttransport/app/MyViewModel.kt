@@ -13,13 +13,14 @@ import com.github.shadowsocks.aidl.TrafficStats
 import com.github.shadowsocks.bg.BaseService
 import com.github.shadowsocks.database.ProfileManager
 import com.github.shadowsocks.preference.OnPreferenceDataStoreChangeListener
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
-import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.displayLocationLimited
-import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.displayNoNet
 
 class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
     ShadowsocksConnection.Callback {
-    var byPassInMain: Boolean = true
+    var byPassInMain = {
+        AircraftAdUtils.good == "1" || (AircraftAdUtils.good == "3" && AircraftUtils.aircraftFb() == "user0")
+    }
     var stateChanged: MutableLiveData<BaseService.State> = MutableLiveData()
     var trafficChanged: MutableLiveData<Map<String, String>> = MutableLiveData()
     var connectAccelerate: MutableLiveData<String> = MutableLiveData()
@@ -67,7 +68,7 @@ class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
         when(config == null) {
             true -> {
                 val random = ProfileManager.putSmartProfileConfig()?.also {
-                    it.byPassInMain = byPassInMain
+                    it.byPassInMain = byPassInMain()
                     it.agencys = AircraftUtils.impelAppsByPassOpen
                     ProfileManager.updateProfile(it)
                     Core.switchProfile(it.id)
@@ -75,7 +76,7 @@ class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
                 }
             }
             false -> {
-                config.byPassInMain = byPassInMain
+                config.byPassInMain = byPassInMain()
                 config.agencys = AircraftUtils.impelAppsByPassOpen
                 ProfileManager.updateProfile(config)
                 Core.switchProfile(config.id)

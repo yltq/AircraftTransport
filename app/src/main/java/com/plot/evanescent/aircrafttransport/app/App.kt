@@ -2,6 +2,7 @@ package com.plot.evanescent.aircrafttransport.app
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.text.TextUtils
 import androidx.lifecycle.ViewModelProvider
 import com.github.shadowsocks.Core
@@ -39,6 +40,8 @@ class App : Application() {
     var aircraftAdUtils: AircraftAdUtils = AircraftAdUtils()
     var aircraftFindUtils: AircraftFindUtils = AircraftFindUtils()
     var aircraftPaintUtils: AircraftPaintUtils = AircraftPaintUtils()
+    var myHotLaunch: Boolean = false
+    lateinit var sharedPref: SharedPreferences
 
     companion object {
         var myApplication: App by Delegates.notNull()
@@ -48,7 +51,7 @@ class App : Application() {
             myCountingJob?.cancel()
             ProfileManager.vpnConnectedTime = 0
             myCountingJob = CoroutineScope(Dispatchers.IO).launch {
-                while (ProfileManager.isVpnConnected()) {
+                while (true) {
                     delay(1000)
                     ProfileManager.vpnConnectedTime++
                     App.myApplication.getViewModel().connectedCounting
@@ -64,35 +67,22 @@ class App : Application() {
         }
     }
 
+    fun updateDT(dt: String) {
+        sharedPref.edit().putString("aircraft_date", dt).apply()
+    }
+
+    fun updateNS(ns: Int) {
+        sharedPref.edit().putInt("aircraft_number_show", ns).apply()
+    }
+
+    fun updateNC(nc: Int) {
+        sharedPref.edit().putInt("aircraft_number_click", nc).apply()
+    }
+
     override fun onCreate() {
         super.onCreate()
-        val sharedPref = getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
-        myAppRefer = sharedPref.getString("aircraft_my_refer", "")?:""
-        AircraftAdUtils.aircraftAdMax.dt = sharedPref.getString("aircraft_date", "")?:""
-        AircraftAdUtils.aircraftAdMax.nS = sharedPref.getInt("aircraft_number_show", 0).run {
-            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val n = if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                this
-            } else {
-                AircraftAdUtils.aircraftAdMax.dt = date
-                AircraftAdUtils.aircraftAdMax.nC = 0
-                0
-            }
-            n
-        }
-        AircraftAdUtils.aircraftAdMax.nC = sharedPref.getInt("aircraft_number_click", 0).also {
-            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val n = if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                this
-            } else {
-                AircraftAdUtils.aircraftAdMax.dt = date
-                AircraftAdUtils.aircraftAdMax.nS = 0
-                0
-            }
-            n
-        }
-
         myApplication = this
+        sharedPref = getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
         myViewModel =
             ViewModelProvider.AndroidViewModelFactory(this).create(MyViewModel::class.java)
         myNetViewModel =
@@ -101,10 +91,13 @@ class App : Application() {
         Core.init(this, FabulousActivity::class)
         AircraftUtils.aircraftInMain(this).run {
             if (this) {
+                initCache()
+                Core.stopService()
                 showTouch = true
                 if (BuildConfig.DEBUG.not()) Firebase.initialize(this@App)
                 MobileAds.initialize(this@App)
                 aircraftAdUtils.resolveAdString("")
+                aircraftAdUtils.resolveEvenString("")
                 getNetViewModel().aircraftFirebase()
                 AircraftUtils.aircraftUUID = AircraftUtils.aircraftUUID.run {
                     val id =
@@ -117,6 +110,40 @@ class App : Application() {
                 }
             }
         }
+    }
+
+    fun initCache() {
+        myAppRefer = sharedPref.getString("aircraft_my_refer", "")?:""
+        AircraftAdUtils.aircraftAdMax.dt = sharedPref.getString("aircraft_date", "")?:""
+        sharedPref.getInt("aircraft_number_show", 0).also {
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            AircraftUtils.print("dt:${AircraftAdUtils.aircraftAdMax.dt}, date:$date")
+            if (date == AircraftAdUtils.aircraftAdMax.dt) {
+                AircraftAdUtils.aircraftAdMax.nS = it
+            } else {
+                AircraftAdUtils.aircraftAdMax.dt = date
+                AircraftAdUtils.aircraftAdMax.nC = 0
+                AircraftAdUtils.aircraftAdMax.nS = 0
+                updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                updateNC(AircraftAdUtils.aircraftAdMax.nC)
+                updateDT(AircraftAdUtils.aircraftAdMax.dt)
+            }
+        }
+        sharedPref.getInt("aircraft_number_click", 0).also {
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            if (date == AircraftAdUtils.aircraftAdMax.dt) {
+                AircraftAdUtils.aircraftAdMax.nC = it
+            } else {
+                AircraftAdUtils.aircraftAdMax.dt = date
+                AircraftAdUtils.aircraftAdMax.nS = 0
+                AircraftAdUtils.aircraftAdMax.nC = 0
+                updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                updateDT(AircraftAdUtils.aircraftAdMax.dt)
+                updateNC(AircraftAdUtils.aircraftAdMax.nC)
+            }
+        }
+        AircraftUtils.print("dt:${AircraftAdUtils.aircraftAdMax.dt}, ns:${AircraftAdUtils.aircraftAdMax.nS}, " +
+                "nc:${AircraftAdUtils.aircraftAdMax.nC}")
     }
 
     fun getViewModel() = myViewModel

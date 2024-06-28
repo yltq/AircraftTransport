@@ -116,20 +116,22 @@ class ObligeActivity : AppCompatActivity() {
             binding.vObligeAd,
             object : AircraftDisplayListener {
                 override fun beRefused(reason: String) {
-
+                    AircraftUtils.print("fooey dimily beRefused:$reason")
                 }
 
                 override fun startDisplay() {
                     binding.vObligeAd.visibility = View.VISIBLE
+                    AircraftUtils.print("fooey startDisplay")
                 }
 
                 override fun displayFailed() {
-
+                    AircraftUtils.print("fooey displayFailed")
                 }
 
                 override fun displaySuccess() {
                     adDisplayEnable = false
                     binding.vFabulousAdFlot.visibility = View.GONE
+                    AircraftUtils.print("fooey displaySuccess")
                     App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey") {}
                 }
 

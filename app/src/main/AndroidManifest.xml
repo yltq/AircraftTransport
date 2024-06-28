@@ -23,6 +23,7 @@
         <activity
             android:name=".module.FabulousActivity"
             android:screenOrientation="portrait"
+            android:launchMode="singleTask"
             android:exported="false" />
 
         <meta-data
@@ -35,6 +36,7 @@
         <activity
             android:name=".module.DetermineActivity"
             android:screenOrientation="portrait"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

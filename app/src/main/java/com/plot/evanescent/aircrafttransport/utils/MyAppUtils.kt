@@ -5,6 +5,7 @@ import android.app.Application.ActivityLifecycleCallbacks
 import android.content.Intent
 import android.os.Bundle
 import com.google.android.gms.ads.AdActivity
+import com.plot.evanescent.aircrafttransport.app.App
 import com.plot.evanescent.aircrafttransport.module.DetermineActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ class MyAppUtils: ActivityLifecycleCallbacks {
         myBeforeStops += 1
         (myBeforeStops == 1 && myBackTime >= 3).also {
             if (it) {
+                App.myApplication.myHotLaunch = true
                 activity.startActivity(Intent(activity, DetermineActivity::class.java))
             }
         }

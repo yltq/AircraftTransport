@@ -14,6 +14,7 @@ import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.nativead.NativeAd
 import com.plot.evanescent.aircrafttransport.R
+import com.plot.evanescent.aircrafttransport.app.App
 import com.plot.evanescent.aircrafttransport.databinding.ViewHouseTopAdBinding
 import com.plot.evanescent.aircrafttransport.databinding.ViewObligeBottomAdBinding
 import java.text.SimpleDateFormat
@@ -54,12 +55,15 @@ class AircraftPaintUtils {
                             Date()
                         )
                         if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                            AircraftAdUtils.aircraftAdMax.nC ++
+                            AircraftAdUtils.aircraftAdMax.nC += 1
                         } else {
                             AircraftAdUtils.aircraftAdMax.dt = date
                             AircraftAdUtils.aircraftAdMax.nC = 1
                             AircraftAdUtils.aircraftAdMax.nS = 0
                         }
+                        App.myApplication.updateNC(AircraftAdUtils.aircraftAdMax.nC)
+                        App.myApplication.updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                        App.myApplication.updateDT(AircraftAdUtils.aircraftAdMax.dt)
                     }
 
                     override fun onAdDismissedFullScreenContent() {
@@ -80,12 +84,15 @@ class AircraftPaintUtils {
                             Date()
                         )
                         if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                            AircraftAdUtils.aircraftAdMax.nS ++
+                            AircraftAdUtils.aircraftAdMax.nS += 1
                         } else {
                             AircraftAdUtils.aircraftAdMax.dt = date
                             AircraftAdUtils.aircraftAdMax.nS = 1
                             AircraftAdUtils.aircraftAdMax.nC = 0
                         }
+                        App.myApplication.updateNC(AircraftAdUtils.aircraftAdMax.nC)
+                        App.myApplication.updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                        App.myApplication.updateDT(AircraftAdUtils.aircraftAdMax.dt)
                         listener.displaySuccess()
                     }
                 }
@@ -116,13 +123,17 @@ class AircraftPaintUtils {
             listener.beRefused("ad_not_valid")
             return
         }
+        if (activity.lifecycle.currentState != Lifecycle.State.RESUMED) {
+            listener.beRefused("not_resume")
+            return
+        }
         AircraftFindUtils.getLoadAd(name).also { loadAd ->
             if (loadAd == null) {
                 listener.beRefused("no_load_ad")
                 return
             }
             listener.startDisplay()
-            if (name == "dimly" && loadAd.ad is NativeAd) {
+            if (name == "dimily" && loadAd.ad is NativeAd) {
                 val view = LayoutInflater.from(activity).inflate(R.layout.view_house_top_ad, null)
                 val binding = ViewHouseTopAdBinding.bind(view)
                 val adView = binding.vNative
@@ -145,12 +156,16 @@ class AircraftPaintUtils {
                         Date()
                     )
                     if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                        AircraftAdUtils.aircraftAdMax.nS ++
+                        AircraftAdUtils.aircraftAdMax.nS += 1
                     } else {
                         AircraftAdUtils.aircraftAdMax.dt = date
                         AircraftAdUtils.aircraftAdMax.nS = 1
                         AircraftAdUtils.aircraftAdMax.nC = 0
                     }
+                    App.myApplication.updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                    App.myApplication.updateNC(AircraftAdUtils.aircraftAdMax.nC)
+                    App.myApplication.updateDT(AircraftAdUtils.aircraftAdMax.dt)
+                    loadAd.ad = null
                     listener.displaySuccess()
                 }
             } else if (name == "fooey" && loadAd.ad is NativeAd) {
@@ -184,12 +199,16 @@ class AircraftPaintUtils {
                         Date()
                     )
                     if (date == AircraftAdUtils.aircraftAdMax.dt) {
-                        AircraftAdUtils.aircraftAdMax.nS ++
+                        AircraftAdUtils.aircraftAdMax.nS += 1
                     } else {
                         AircraftAdUtils.aircraftAdMax.dt = date
                         AircraftAdUtils.aircraftAdMax.nS = 1
                         AircraftAdUtils.aircraftAdMax.nC = 0
                     }
+                    App.myApplication.updateNS(AircraftAdUtils.aircraftAdMax.nS)
+                    App.myApplication.updateNC(AircraftAdUtils.aircraftAdMax.nC)
+                    App.myApplication.updateDT(AircraftAdUtils.aircraftAdMax.dt)
+                    loadAd.ad = null
                     listener.displaySuccess()
                 }
             }

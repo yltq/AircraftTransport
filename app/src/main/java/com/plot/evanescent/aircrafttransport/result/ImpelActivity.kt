@@ -26,7 +26,7 @@ class ImpelActivity : AppCompatActivity() {
     private var appsMap: MutableMap<String, MyImpelData> = mutableMapOf()
     private var apps: MutableList<MyImpelData> = mutableListOf()
     private var adapter: ImpelAdapter? = null
-    private var appsByPassOpen: MutableList<String> = mutableListOf()
+    private var appsByPassOpen = mutableListOf<String>()
 
     inner class ImpelAdapter : RecyclerView.Adapter<ImpelAdapter.ImpelHolder>() {
         inner class ImpelHolder(var binding: FabulousLayoutAppProxyBinding) :
