@@ -2,8 +2,4 @@
     <string name="app_name">Thunder Tunnel VPN Proxy</string>
     <string name="google_ad_id">ca-app-pub-3940256099942544~3347511713</string>
     <string name="facebook_app_id"></string>
-    <string name="title_activity_fabulous">FabulousActivity</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
 </resources>
