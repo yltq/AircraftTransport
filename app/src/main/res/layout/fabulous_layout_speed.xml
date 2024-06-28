@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="100dp"
+    android:orientation="horizontal">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/v_line"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@mipmap/fabulous_connected_download"
+            android:drawablePadding="4dp"
+            android:text="Download"
+            android:textColor="#b3FFFFFF"
+            android:textSize="12dp" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/v_fabulous_download"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0Mbp/s"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <View
+        android:id="@+id/v_line"
+        android:layout_width="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="30dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="29dp"
+        android:layout_marginEnd="29dp"
+        android:background="@color/white" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/v_line"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@mipmap/fabulous_connected_upload"
+            android:drawablePadding="4dp"
+            android:text="Upload"
+            android:textColor="#b3FFFFFF"
+            android:textSize="12dp" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/v_fabulous_upload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0Mbp/s"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

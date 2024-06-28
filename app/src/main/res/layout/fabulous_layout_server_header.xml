@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@color/white"
+    android:layout_height="wrap_content">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:paddingStart="18dp"
+        android:gravity="center_vertical"
+        android:paddingEnd="16dp"
+        android:layout_height="62dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/v_server_icon"
+            android:src="@mipmap/server_fast"
+            android:layout_width="30dp"
+            android:layout_height="30dp"/>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/v_server_name"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Smart"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#FF333333"
+            android:textSize="14dp"
+            android:layout_marginStart="8dp"
+            android:layout_height="wrap_content"/>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_marginStart="16dp"
+            android:src="@drawable/fabulous_server_expand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.cardview.widget.CardView>

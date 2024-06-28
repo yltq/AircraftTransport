@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.AircraftTransport" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">#F3F5F7</item>
+        <!-- Customize your theme here. -->
+    </style>
+</resources>

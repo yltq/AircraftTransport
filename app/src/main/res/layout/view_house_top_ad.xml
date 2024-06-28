@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    app:cardBackgroundColor="#FF3E3E3E"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="0dp">
+
+    <com.google.android.gms.ads.nativead.NativeAdView
+        android:id="@+id/v_native"
+        android:layout_width="match_parent"
+        android:layout_height="60dp">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="11dp"
+            android:layout_marginEnd="11dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <androidx.constraintlayout.utils.widget.ImageFilterView
+                android:id="@+id/v_ad_icon"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                app:round="8dp" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/v_ad_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:drawableEnd="@mipmap/house_ad"
+                    android:drawablePadding="8dp"
+                    android:ellipsize="end"
+                    android:gravity="start|center_vertical"
+                    android:maxLines="1"
+                    android:textColor="@color/white"
+                    android:textSize="14dp" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/v_ad_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="start|center_vertical"
+                    android:maxLines="1"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="12dp" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <FrameLayout
+                android:id="@+id/v_ad_action"
+                android:layout_width="88dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp">
+
+                <androidx.constraintlayout.utils.widget.ImageFilterView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#FFF98820"
+                    app:round="32dp" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/v_ad_install"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Install"
+                    android:textColor="@color/white"
+                    android:textSize="14dp" />
+
+            </FrameLayout>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </com.google.android.gms.ads.nativead.NativeAdView>
+
+</androidx.cardview.widget.CardView>

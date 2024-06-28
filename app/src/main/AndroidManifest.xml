@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".app.App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AircraftTransport"
+        tools:targetApi="31">
+        <activity
+            android:name=".result.ImpelActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".result.ObligeActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".module.FabulousActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/google_ad_id" />
+
+        <activity
+            android:name=".module.DetermineActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
