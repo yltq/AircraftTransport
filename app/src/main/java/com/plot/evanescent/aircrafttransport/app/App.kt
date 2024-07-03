@@ -142,8 +142,6 @@ class App : Application() {
                 updateNC(AircraftAdUtils.aircraftAdMax.nC)
             }
         }
-        AircraftUtils.print("dt:${AircraftAdUtils.aircraftAdMax.dt}, ns:${AircraftAdUtils.aircraftAdMax.nS}, " +
-                "nc:${AircraftAdUtils.aircraftAdMax.nC}")
     }
 
     fun getViewModel() = myViewModel

@@ -9,16 +9,13 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.plot.evanescent.aircrafttransport.R
 import com.plot.evanescent.aircrafttransport.app.App
-import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils
 import com.plot.evanescent.aircrafttransport.utils.AircraftDisplayListener
 import com.plot.evanescent.aircrafttransport.utils.AircraftFindUtils
-import com.plot.evanescent.aircrafttransport.utils.AircraftLoadListener
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class DetermineActivity : AppCompatActivity() {
     companion object {
@@ -84,8 +81,8 @@ class DetermineActivity : AppCompatActivity() {
                 finish()
             }
         }
-        lifecycleScope.launchWhenCreated {
-            withContext(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            kotlin.runCatching {
                 AdvertisingIdClient.getAdvertisingIdInfo(this@DetermineActivity).run {
                     App.myApplication.gaid = id ?: ""
                     App.myApplication.launchLimited = isLimitAdTrackingEnabled.run {
@@ -97,11 +94,13 @@ class DetermineActivity : AppCompatActivity() {
                         key
                     }
                 }
+            }.onFailure {
+                AircraftUtils.print("getAdvertisingIdInfo error ${it.message}")
             }
-            AircraftUtils.aircraftCloak.also {
-                if (TextUtils.isEmpty(it)) {
-                    App.myApplication.getNetViewModel().aircraftGetCloak()
-                }
+        }
+        AircraftUtils.aircraftCloak.also {
+            if (TextUtils.isEmpty(it)) {
+                App.myApplication.getNetViewModel().aircraftGetCloak()
             }
         }
     }
