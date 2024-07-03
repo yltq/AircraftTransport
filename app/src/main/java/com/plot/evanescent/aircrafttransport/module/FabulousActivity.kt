@@ -544,7 +544,12 @@ class FabulousActivity : AppCompatActivity() {
                                         lifecycleScope.launch {
                                             delay(250)
                                             if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                                                val code = ProfileManager.getCurrentProfileConfig()?.nCode ?: ""
+                                                val config = ProfileManager.getCurrentProfileConfig()
+                                                val code = if (config == null || config.inSmart) {
+                                                    ""
+                                                } else {
+                                                    config.nCode?:""
+                                                }
                                                 go(ObligeActivity::class.java, code)
                                             }
                                         }
@@ -602,7 +607,12 @@ class FabulousActivity : AppCompatActivity() {
                             App.startCounting()
                             delay(250)
                             if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                                val code = ProfileManager.getCurrentProfileConfig()?.nCode ?: ""
+                                val config = ProfileManager.getCurrentProfileConfig()
+                                val code = if (config == null || config.inSmart) {
+                                    ""
+                                } else {
+                                    config.nCode?:""
+                                }
                                 go(ObligeActivity::class.java, code)
                             }
                         }
@@ -613,9 +623,18 @@ class FabulousActivity : AppCompatActivity() {
                     fabulous_vpn00()
                     App.stopCounting()
                     val code = if (ProfileManager.historyProfile != null) {
-                        ProfileManager.historyProfile!!.nCode
+                        if (ProfileManager.historyProfile!!.inSmart) {
+                            ""
+                        } else {
+                            ProfileManager.historyProfile!!.nCode
+                        }
                     } else {
-                        ProfileManager.getCurrentProfileConfig()?.nCode ?: ""
+                        val config = ProfileManager.getCurrentProfileConfig()
+                        if (config == null || config.inSmart) {
+                            ""
+                        } else {
+                            config.nCode?:""
+                        }
                     }
                     go(ObligeActivity::class.java, code)
                     ProfileManager.historyProfile = null
