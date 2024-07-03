@@ -561,7 +561,12 @@ class FabulousActivity : AppCompatActivity() {
                                         lifecycleScope.launch {
                                             delay(250)
                                             if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                                                val code = ProfileManager.getCurrentProfileConfig()?.nCode ?: ""
+                                                val config = ProfileManager.getCurrentProfileConfig()
+                                                val code = if (config == null || config.inSmart) {
+                                                     ""
+                                                } else {
+                                                    config.nCode?:""
+                                                }
                                                 go(ObligeActivity::class.java, code)
                                             }
                                         }

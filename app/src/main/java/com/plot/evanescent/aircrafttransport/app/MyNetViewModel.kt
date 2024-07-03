@@ -21,7 +21,6 @@ import com.plot.evanescent.aircrafttransport.result.MyImpelData
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.Locale
@@ -195,7 +194,13 @@ class MyNetViewModel : ViewModel() {
                     override fun onInstallReferrerSetupFinished(p0: Int) {
                         (p0 == InstallReferrerClient.InstallReferrerResponse.OK).also {ok ->
                             if (ok) {
-                                App.myApplication.myAppRefer = it.installReferrer.installReferrer
+                                kotlin.runCatching {
+                                    it.installReferrer
+                                }.onSuccess {
+                                    App.myApplication.myAppRefer = it?.installReferrer?:""
+                                }.onFailure {
+                                    AircraftUtils.print("installReferrer error ${it.message}")
+                                }
                             }
                         }
                     }

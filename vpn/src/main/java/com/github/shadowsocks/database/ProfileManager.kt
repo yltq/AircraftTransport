@@ -81,6 +81,7 @@ object ProfileManager {
                 ?: allServers.takeIf { !it.isNullOrEmpty() })?:return@also
             val random = list.random().run {
                 it.host = host
+                it.method = method
                 it.remotePort = remotePort
                 it.password = password
                 it.cName = cName
