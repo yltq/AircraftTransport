@@ -2,8 +2,8 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'stringfog'
-    //    id 'com.google.gms.google-services'
-//    id 'com.google.firebase.crashlytics'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 import com.github.megatronking.stringfog.plugin.kg.RandomKeyGenerator
 
@@ -16,7 +16,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.plot.evanescent.aircrafttransport"
+        applicationId "com.stable.fasttunnel.pro"
         minSdk 24
         targetSdk 33
         versionCode 1
@@ -26,10 +26,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile (file('../f.jks'))
-            storePassword '111111'
+            storeFile (file('../csfp.jks'))
+            storePassword 'csfp@1125'
             keyAlias 'key0'
-            keyPassword '111111'
+            keyPassword 'csfp@1125'
         }
     }
 

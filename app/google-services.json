@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "671244157242",
+    "project_id": "thunder-tunnel",
+    "storage_bucket": "thunder-tunnel.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671244157242:android:f22a775876f63cfb8f5003",
+        "android_client_info": {
+          "package_name": "com.stable.fasttunnel.pro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcBqDxHdNWwMS6Cb0-5S6GD6KwiWh53rg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
