@@ -16,20 +16,20 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.stable.fasttunnel.pro"
+        applicationId "com.skystream.fastlink.unlimited.stable"
         minSdk 24
         targetSdk 33
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 10
+        versionName "1.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
         release {
-            storeFile (file('../csfp.jks'))
-            storePassword 'csfp@1125'
+            storeFile (file('../csfus.jks'))
+            storePassword 'csfus_5439'
             keyAlias 'key0'
-            keyPassword 'csfp@1125'
+            keyPassword 'csfus_5439'
         }
     }
 

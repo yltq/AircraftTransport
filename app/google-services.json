@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "671244157242",
-    "project_id": "thunder-tunnel",
-    "storage_bucket": "thunder-tunnel.appspot.com"
+    "project_number": "814709424797",
+    "project_id": "skystream-vpn",
+    "storage_bucket": "skystream-vpn.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:671244157242:android:f22a775876f63cfb8f5003",
+        "mobilesdk_app_id": "1:814709424797:android:4f2c8ea8f17c240017ca74",
         "android_client_info": {
-          "package_name": "com.stable.fasttunnel.pro"
+          "package_name": "com.skystream.fastlink.unlimited.stable"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAcBqDxHdNWwMS6Cb0-5S6GD6KwiWh53rg"
+          "current_key": "AIzaSyAL4yFCxzXe7eLU1NZXhiqGb5Wvq2aoHbU"
         }
       ],
       "services": {

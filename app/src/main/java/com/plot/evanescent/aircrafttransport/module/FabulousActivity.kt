@@ -506,7 +506,7 @@ class FabulousActivity : AppCompatActivity() {
             share()
         }
         binding.fabulousLayoutSet.vFabulousSetPolicy.setOnClickListener {
-            "https://sites.google.com/view/thundertunnelvpnproxy/home".go(this)
+            "https://sites.google.com/view/skystream/home".go(this)
         }
         binding.vFabulousGuide.setOnClickListener {
             App.myApplication.showTouch = false
