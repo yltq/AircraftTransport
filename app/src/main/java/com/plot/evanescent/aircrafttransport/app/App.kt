@@ -108,6 +108,7 @@ class App : Application() {
                     }
                     id
                 }
+                getNetViewModel().aircraftAdjust(this@App)
             }
         }
     }

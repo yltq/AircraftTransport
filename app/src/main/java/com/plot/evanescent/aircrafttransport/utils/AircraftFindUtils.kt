@@ -1,5 +1,8 @@
 package com.plot.evanescent.aircrafttransport.utils
 
+import com.github.shadowsocks.bg.BaseService
+import com.github.shadowsocks.database.ProfileManager
+import com.github.shadowsocks.preference.DataStore
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
@@ -8,7 +11,9 @@ import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.plot.evanescent.aircrafttransport.BuildConfig
 import com.plot.evanescent.aircrafttransport.app.App
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -80,6 +85,8 @@ class AircraftFindUtils {
                 else -> null
             }
         }
+
+        var loadEventPaidList: MutableList<Pair<Any, Map<String, String>>> = mutableListOf()
     }
 
     fun loadOpenOrIn(
@@ -124,9 +131,70 @@ class AircraftFindUtils {
                         AdRequest.Builder().build(),
                         object : AppOpenAd.AppOpenAdLoadCallback() {
                             override fun onAdLoaded(openAd: AppOpenAd) {
+                                val ip = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.host?:"" else
+                                    App.myApplication.getNetViewModel().host
+                                val city = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.cName?:"" else
+                                    "none"
+
                                 loadAd.place = 0
                                 loadAd.ad = openAd
                                 loadAd.dt = System.currentTimeMillis()
+                                if (loadEventPaidList.isEmpty() || loadEventPaidList.count { it.first == openAd } == 0) {
+                                    loadEventPaidList.add(Pair(openAd, mutableMapOf(
+                                        "portage" to name,
+                                        "disjunct" to ip,
+                                        "grotto" to openAd.adUnitId,
+                                        "bame" to city,
+                                    )))
+                                }
+                                openAd.setOnPaidEventListener {
+                                    AircraftUtils.print("$name----setOnPaidEventListener---${ProfileManager.vpnState}-")
+                                    if (loadEventPaidList.isNotEmpty() && loadEventPaidList.count { it.first == openAd } > 0) {
+                                        val p000 =
+                                            loadEventPaidList.find { it.first == openAd } ?: return@setOnPaidEventListener
+
+                                        App.myApplication.getNetViewModel().aircraftFireUpload(it.valueMicros, it.currencyCode,
+                                            openAd.responseInfo?.loadedAdapterResponseInfo?.adSourceName ?: "")
+
+                                        AircraftUtils.aircraftPostJsonMethod(
+                                            if (BuildConfig.DEBUG)
+                                                "https://test-peggy.stablefasttunnel.com/impelled/prom/nikko"
+                                            else "https://peggy.stablefasttunnel.com/monetary/gazebo",
+                                            "redound",
+                                            JSONObject().run {
+                                                putOpt("rinse", it.valueMicros)
+                                                putOpt("emanuel", it.currencyCode)
+                                                putOpt("chomsky", "admob")
+                                                putOpt("neff", "admob")
+                                                putOpt("grotto", p000.second["grotto"])
+                                                putOpt("portage", p000.second["portage"])
+
+                                                putOpt("bame", p000.second["bame"])
+
+                                                val city111 = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                                        ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.cName?:"" else
+                                                    "none"
+                                                putOpt("kace", city111)
+
+                                                putOpt("tobago", "open")
+                                                putOpt("peach",  arrayListOf(
+                                                    "UNKNOWN",
+                                                    "ESTIMATED",
+                                                    "PUBLISHER_PROVIDED",
+                                                    "PRECISE"
+                                                )[it.precisionType])
+                                                putOpt("disjunct", p000.second["disjunct"])
+                                                val ip111 = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.host?:"" else
+                                                    App.myApplication.getNetViewModel().host
+                                                putOpt("kankakee", ip111)
+                                                this
+                                            }, false
+                                        ) {}
+                                    }
+                                }
                                 loadAd.loading = false
                             }
 
@@ -150,9 +218,70 @@ class AircraftFindUtils {
                         AdRequest.Builder().build(),
                         object : InterstitialAdLoadCallback() {
                             override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                                val ip = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.host?:"" else
+                                    App.myApplication.getNetViewModel().host
+                                val city = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.cName?:"" else
+                                    "none"
+
                                 loadAd.place = 0
                                 loadAd.ad = interstitialAd
                                 loadAd.dt = System.currentTimeMillis()
+                                if (loadEventPaidList.isEmpty() || loadEventPaidList.count { it.first == interstitialAd } == 0) {
+                                    loadEventPaidList.add(Pair(interstitialAd, mutableMapOf(
+                                        "portage" to name,
+                                        "disjunct" to ip,
+                                        "grotto" to interstitialAd.adUnitId,
+                                        "bame" to city,
+                                    )))
+                                }
+                                interstitialAd.setOnPaidEventListener {
+                                    AircraftUtils.print("$name----setOnPaidEventListener---${ProfileManager.vpnState}-")
+                                    if (loadEventPaidList.isNotEmpty() && loadEventPaidList.count { it.first == interstitialAd } > 0) {
+                                        val p000 =
+                                            loadEventPaidList.find { it.first == interstitialAd } ?: return@setOnPaidEventListener
+
+                                        App.myApplication.getNetViewModel().aircraftFireUpload(it.valueMicros, it.currencyCode,
+                                            interstitialAd.responseInfo?.loadedAdapterResponseInfo?.adSourceName ?: "")
+
+                                        AircraftUtils.aircraftPostJsonMethod(
+                                            if (BuildConfig.DEBUG)
+                                                "https://test-peggy.stablefasttunnel.com/impelled/prom/nikko"
+                                            else "https://peggy.stablefasttunnel.com/monetary/gazebo",
+                                            "redound",
+                                            JSONObject().run {
+                                                putOpt("rinse", it.valueMicros)
+                                                putOpt("emanuel", it.currencyCode)
+                                                putOpt("chomsky", "admob")
+                                                putOpt("neff", "admob")
+                                                putOpt("grotto", p000.second["grotto"])
+                                                putOpt("portage", p000.second["portage"])
+
+                                                putOpt("bame", p000.second["bame"])
+
+                                                val city111 = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.cName?:"" else
+                                                    "none"
+                                                putOpt("kace", city111)
+
+                                                putOpt("tobago", "inter")
+                                                putOpt("peach",  arrayListOf(
+                                                    "UNKNOWN",
+                                                    "ESTIMATED",
+                                                    "PUBLISHER_PROVIDED",
+                                                    "PRECISE"
+                                                )[it.precisionType])
+                                                putOpt("disjunct", p000.second["disjunct"])
+                                                val ip111 = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                                    ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.host?:"" else
+                                                    App.myApplication.getNetViewModel().host
+                                                putOpt("kankakee", ip111)
+                                                this
+                                            }, false
+                                        ) {}
+                                    }
+                                }
                                 loadAd.loading = false
                                 listener.loadSuccess()
                             }
@@ -214,10 +343,72 @@ class AircraftFindUtils {
                     App.myApplication,
                     it.tun3ad,
                 )
-                    .forNativeAd {
+                    .forNativeAd { native00 ->
+                        val ip = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                            ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.host?:"" else
+                            App.myApplication.getNetViewModel().host
+                        val city = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                            ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.cName?:"" else
+                            "none"
+
                         loadAd.place = 0
-                        loadAd.ad = it
+                        loadAd.ad = native00
                         loadAd.dt = System.currentTimeMillis()
+                        if (loadEventPaidList.isEmpty() || loadEventPaidList.count { it.first == native00 } == 0) {
+                            loadEventPaidList.add(Pair(native00, mutableMapOf(
+                                "portage" to name,
+                                "disjunct" to ip,
+                                "grotto" to it.tun3ad,
+                                "bame" to city,
+                            )))
+                        }
+                        native00.setOnPaidEventListener {
+                            AircraftUtils.print("$name----setOnPaidEventListener---${ProfileManager.vpnState}-")
+                            if (loadEventPaidList.isNotEmpty() && loadEventPaidList.count { it.first == native00 } > 0) {
+                                val p000 =
+                                    loadEventPaidList.find { it.first == native00 } ?: return@setOnPaidEventListener
+
+                                App.myApplication.getNetViewModel().aircraftFireUpload(it.valueMicros, it.currencyCode,
+                                    native00.responseInfo?.loadedAdapterResponseInfo?.adSourceName ?: "")
+
+                                AircraftUtils.aircraftPostJsonMethod(
+                                    if (BuildConfig.DEBUG)
+                                        "https://test-peggy.stablefasttunnel.com/impelled/prom/nikko"
+                                    else "https://peggy.stablefasttunnel.com/monetary/gazebo",
+                                    "redound",
+                                    JSONObject().run {
+                                        putOpt("rinse", it.valueMicros)
+                                        putOpt("emanuel", it.currencyCode)
+                                        putOpt("chomsky", "admob")
+                                        putOpt("neff", "admob")
+                                        putOpt("grotto", p000.second["grotto"])
+                                        putOpt("portage", p000.second["portage"])
+
+                                        putOpt("bame", p000.second["bame"])
+
+                                        val city111 = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                            ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.cName?:"" else
+                                            "none"
+                                        putOpt("kace", city111)
+
+                                        putOpt("tobago", "native")
+                                        putOpt("peach",  arrayListOf(
+                                            "UNKNOWN",
+                                            "ESTIMATED",
+                                            "PUBLISHER_PROVIDED",
+                                            "PRECISE"
+                                        )[it.precisionType])
+                                        putOpt("disjunct", p000.second["disjunct"])
+                                        val ip111 = if (ProfileManager.vpnState == BaseService.State.Connected ||
+                                            ProfileManager.vpnState == BaseService.State.Stopping) ProfileManager.getProfile(DataStore.profileId)?.host?:"" else
+                                            App.myApplication.getNetViewModel().host
+                                        putOpt("kankakee", ip111)
+
+                                        this
+                                    }, false
+                                ) {}
+                            }
+                        }
                         loadAd.loading = false
                         listener.loadSuccess()
                     }.withAdListener(object : AdListener() {

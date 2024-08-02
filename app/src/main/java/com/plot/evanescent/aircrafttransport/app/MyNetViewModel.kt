@@ -6,11 +6,17 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import android.util.Base64
+import android.webkit.WebView
 import androidx.annotation.Keep
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.adjust.sdk.Adjust
+import com.adjust.sdk.AdjustAdRevenue
+import com.adjust.sdk.AdjustConfig
+import com.adjust.sdk.LogLevel
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
+import com.facebook.appevents.AppEventsLogger
 import com.github.shadowsocks.database.Profile
 import com.github.shadowsocks.database.ProfileManager
 import com.google.firebase.ktx.Firebase
@@ -21,8 +27,10 @@ import com.plot.evanescent.aircrafttransport.result.MyImpelData
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.Currency
 import java.util.Locale
 
 class MyNetViewModel : ViewModel() {
@@ -30,15 +38,16 @@ class MyNetViewModel : ViewModel() {
     var host: String = ""
     var loadingSever: Boolean = false
     var loadingApps: MutableLiveData<MutableMap<String, MyImpelData>> = MutableLiveData()
+    val fb by lazy { AppEventsLogger.newLogger(App.myApplication) }
     fun aircraftGetHost() {
-        AircraftUtils.aircraftGetMethodInParam("https://ip.seeip.org/geoip/", null) { body ->
+        AircraftUtils.aircraftGetMethodInParam("https://ipinfo.io/json", null) { body ->
             val result =
                 body.string().takeIf { !TextUtils.isEmpty(it) } ?: return@aircraftGetMethodInParam
             val json = kotlin.runCatching {
                 JSONObject(result)
             }.onSuccess {
                 AircraftUtils.print("aircraftGetHost success:${it}")
-                code = it.optString("country_code").ifEmpty { Locale.getDefault().country }
+                code = it.optString("country").ifEmpty { Locale.getDefault().country }
                 host = it.optString("ip")
             }.onFailure {
                 AircraftUtils.print("aircraftGetHost error:${it.message}")
@@ -189,27 +198,80 @@ class MyNetViewModel : ViewModel() {
 
     fun aircraftMyRefer() {
         CoroutineScope(Dispatchers.IO).launch {
-            InstallReferrerClient.newBuilder(App.myApplication).build().also {
-                it.startConnection(object : InstallReferrerStateListener {
-                    override fun onInstallReferrerSetupFinished(p0: Int) {
-                        (p0 == InstallReferrerClient.InstallReferrerResponse.OK).also {ok ->
-                            if (ok) {
-                                kotlin.runCatching {
-                                    it.installReferrer
-                                }.onSuccess {
-                                    App.myApplication.myAppRefer = it?.installReferrer?:""
-                                }.onFailure {
-                                    AircraftUtils.print("installReferrer error ${it.message}")
+            App.myApplication.sharedPref.getString("aircraft_my_refer", "").also {
+                if (!TextUtils.isEmpty(it)) {
+                    cancel()
+                    return@launch
+                }
+                InstallReferrerClient.newBuilder(App.myApplication).build().also {
+                    it.startConnection(object : InstallReferrerStateListener {
+                        override fun onInstallReferrerSetupFinished(p0: Int) {
+                            (p0 == InstallReferrerClient.InstallReferrerResponse.OK).also { ok ->
+                                if (ok) {
+                                    kotlin.runCatching {
+                                        it.installReferrer
+                                    }.onSuccess {
+                                        App.myApplication.myAppRefer = it?.installReferrer ?: ""
+                                        App.myApplication.sharedPref.edit().putString("aircraft_my_refer", App.myApplication.myAppRefer).apply()
+                                        AircraftUtils.aircraftPostJsonMethod(
+                                            if (BuildConfig.DEBUG)
+                                                "https://test-peggy.stablefasttunnel.com/impelled/prom/nikko"
+                                            else "https://peggy.stablefasttunnel.com/monetary/gazebo",
+                                            "afflict", JSONObject().run {
+                                                putOpt("karyatid", "build/" + Build.ID)
+                                                putOpt("auxin", it?.installReferrer ?: "")
+                                                putOpt("slice", it?.installVersion ?: "")
+                                                putOpt(
+                                                    "audible",
+                                                    WebView(App.myApplication).settings.userAgentString
+                                                )
+                                                putOpt(
+                                                    "vikram",
+                                                    if (TextUtils.isEmpty(App.myApplication.launchLimited)) "script" else App.myApplication.launchLimited
+                                                )
+                                                putOpt("crete", it?.referrerClickTimestampSeconds ?: "")
+                                                putOpt(
+                                                    "envelope",
+                                                    it?.installBeginTimestampSeconds ?: ""
+                                                )
+                                                putOpt(
+                                                    "leaky",
+                                                    it?.referrerClickTimestampServerSeconds ?: ""
+                                                )
+                                                putOpt(
+                                                    "wu",
+                                                    it?.installBeginTimestampServerSeconds ?: ""
+                                                )
+                                                putOpt(
+                                                    "kaddish",
+                                                    App.myApplication.packageManager.getPackageInfo(
+                                                        App.myApplication.packageName,
+                                                        0
+                                                    ).firstInstallTime
+                                                )
+                                                putOpt(
+                                                    "sci",
+                                                    App.myApplication.packageManager.getPackageInfo(
+                                                        App.myApplication.packageName,
+                                                        0
+                                                    ).lastUpdateTime
+                                                )
+                                                this
+                                            }, false
+                                        ) {}
+                                    }.onFailure {
+                                        AircraftUtils.print("installReferrer error ${it.message}")
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    override fun onInstallReferrerServiceDisconnected() {
+                        override fun onInstallReferrerServiceDisconnected() {
 
-                    }
+                        }
 
-                })
+                    })
+                }
             }
         }
     }
@@ -240,4 +302,29 @@ class MyNetViewModel : ViewModel() {
             }
         }
     }
+
+    fun aircraftAdjust(context: Context) {
+        val appToken = "ih2pm2dr3k74"
+        val environment =
+            if (!BuildConfig.DEBUG) AdjustConfig.ENVIRONMENT_PRODUCTION else AdjustConfig.ENVIRONMENT_SANDBOX
+        val config = AdjustConfig(context, appToken, environment)
+        config.setLogLevel(LogLevel.WARN)
+        Adjust.addSessionCallbackParameter("customer_user_id", AircraftUtils.aircraftUUID)
+        config.delayStart = 5.5
+        Adjust.onCreate(config)
+    }
+
+    fun aircraftFireUpload(valueMicros: Long, currencyCode: String, adSourceName: String) {
+        if (BuildConfig.DEBUG) return
+        val adRevenue = AdjustAdRevenue(AdjustConfig.AD_REVENUE_ADMOB)
+        adRevenue.setRevenue(
+            valueMicros / 1000000.0,
+            currencyCode
+        )
+        adRevenue.adRevenueNetwork = adSourceName
+        Adjust.trackAdRevenue(adRevenue)
+
+        fb.logPurchase((valueMicros / 1000000.0).toBigDecimal(), Currency.getInstance("USD"))
+    }
+
 }

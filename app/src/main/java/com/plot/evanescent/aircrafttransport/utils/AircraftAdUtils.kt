@@ -1,8 +1,10 @@
 package com.plot.evanescent.aircrafttransport.utils
 
 import android.util.Base64
+import com.plot.evanescent.aircrafttransport.BuildConfig
 import com.plot.evanescent.aircrafttransport.app.App
 import org.json.JSONObject
+import java.util.Locale
 
 class AircraftAdUtils {
     companion object {
@@ -34,6 +36,23 @@ class AircraftAdUtils {
         var bell: String = LOCAL_BELL
         var good: String = LOCAL_GOOD
         var deadValidKey: MutableList<String> = mutableListOf("fb4a", "facebook")
+
+        fun gilead(): JSONObject {
+            return JSONObject().run {
+                putOpt("sweeten", App.myApplication.gaid)
+                putOpt("filial", Locale.getDefault().language + "_" + Locale.getDefault().country)
+                putOpt("familiar", "1234")
+                putOpt("claim", BuildConfig.APPLICATION_ID)
+                putOpt("casanova", BuildConfig.VERSION_NAME)
+                putOpt("calculi", "chimera")
+                putOpt("squat", "1")
+                putOpt("honoree", AircraftUtils.aircraftUUID)
+                putOpt("horny", "1")
+                putOpt("opt", AircraftUtils.aircraftUUID)
+                putOpt("median", "1234")
+                this
+            }
+        }
     }
 
     fun resolveEvenString(string: String) {

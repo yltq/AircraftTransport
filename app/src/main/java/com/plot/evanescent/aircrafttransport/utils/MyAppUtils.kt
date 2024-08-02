@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application.ActivityLifecycleCallbacks
 import android.content.Intent
 import android.os.Bundle
+import com.adjust.sdk.Adjust
 import com.google.android.gms.ads.AdActivity
 import com.plot.evanescent.aircrafttransport.app.App
 import com.plot.evanescent.aircrafttransport.module.DetermineActivity
@@ -42,11 +43,11 @@ class MyAppUtils: ActivityLifecycleCallbacks {
     }
 
     override fun onActivityResumed(activity: Activity) {
-
+        Adjust.onResume()
     }
 
     override fun onActivityPaused(activity: Activity) {
-
+        Adjust.onPause()
     }
 
     override fun onActivityStopped(activity: Activity) {

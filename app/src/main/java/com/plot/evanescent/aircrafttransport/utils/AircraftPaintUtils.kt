@@ -68,6 +68,7 @@ class AircraftPaintUtils {
 
                     override fun onAdDismissedFullScreenContent() {
                         super.onAdDismissedFullScreenContent()
+                        AircraftUtils.print("$name----start close ad----")
                         listener.closed()
                     }
 
@@ -79,6 +80,7 @@ class AircraftPaintUtils {
 
                     override fun onAdShowedFullScreenContent() {
                         super.onAdShowedFullScreenContent()
+                        AircraftUtils.print("$name----start show ad----")
                         loadAd.ad = null
                         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
                             Date()
@@ -132,6 +134,7 @@ class AircraftPaintUtils {
                 listener.beRefused("no_load_ad")
                 return
             }
+            AircraftUtils.print("$name----start show ad----")
             listener.startDisplay()
             if (name == "dimily" && loadAd.ad is NativeAd) {
                 val view = LayoutInflater.from(activity).inflate(R.layout.view_house_top_ad, null)
