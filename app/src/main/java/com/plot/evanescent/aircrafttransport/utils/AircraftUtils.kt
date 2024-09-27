@@ -343,15 +343,13 @@ class AircraftUtils {
         }
 
         fun aircraftFb(): String {
-//            if (App.myApplication.myAppRefer.isEmpty()) {
-//                return "user0"
-//            }
-//            if (AircraftAdUtils.deadValidKey.count { App.myApplication.myAppRefer.contains(it) } > 0) {
-//                return "user1"
-//            }
-//            return "user0"
-
-            return "user1"
+            if (App.myApplication.myAppRefer.isEmpty()) {
+                return "user0"
+            }
+            if (AircraftAdUtils.deadValidKey.count { App.myApplication.myAppRefer.contains(it) } > 0) {
+                return "user1"
+            }
+            return "user0"
         }
     }
 }
