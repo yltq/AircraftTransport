@@ -107,4 +107,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var dirty: Boolean
         get() = privateStore.getBoolean(Key.dirty) ?: false
         set(value) = privateStore.putBoolean(Key.dirty, value)
+
+    var kont: String
+        get() = privateStore.getString(Key.kont) ?: ""
+        set(value) = privateStore.putString(Key.kont, value)
 }

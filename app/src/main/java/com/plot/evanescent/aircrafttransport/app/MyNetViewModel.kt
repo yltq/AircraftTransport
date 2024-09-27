@@ -24,6 +24,7 @@ import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.plot.evanescent.aircrafttransport.BuildConfig
 import com.plot.evanescent.aircrafttransport.R
 import com.plot.evanescent.aircrafttransport.result.MyImpelData
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -276,14 +277,15 @@ class MyNetViewModel : ViewModel() {
         }
     }
 
-    fun aircraftFirebase() {
+    fun aircraftFirebase(next: Boolean) {
         BuildConfig.DEBUG.also {
-            if (it) return
+//            if (it) return
             val remote = Firebase.remoteConfig
             remote.fetchAndActivate().addOnCompleteListener {
                 if (it.isSuccessful) {
-                    val dead = remote.getString("dead").also {
+                    remote.getString("dead").also {
                         if (it.isNotEmpty()) {
+                            AircraftUtils.print("firebase dead is : $it")
                             App.myApplication.aircraftAdUtils.resolveEvenString(it)
                         }
                     }
@@ -298,7 +300,19 @@ class MyNetViewModel : ViewModel() {
                         }
                     }
 
+                } else {
+                    if (!next) {
+                        AircraftAdUtils.initAircraftFacebook("")
+                        return@addOnCompleteListener
+                    }
+                    aircraftFirebase(false)
                 }
+            }.addOnFailureListener {
+                if (!next) {
+                    AircraftAdUtils.initAircraftFacebook("")
+                    return@addOnFailureListener
+                }
+                aircraftFirebase(false)
             }
         }
     }

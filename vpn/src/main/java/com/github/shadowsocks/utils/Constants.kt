@@ -34,6 +34,7 @@ object Key {
     const val nCode = "nCode"
 
     const val individual = "Proxyed"
+    const val kont = "kont"
 
     const val serviceMode = "serviceMode"
     const val modeProxy = "proxy"

@@ -271,7 +271,8 @@ class AircraftUtils {
         }
 
         fun print(string: String) {
-            if (BuildConfig.DEBUG) Log.e("aircraft", string)
+            if (BuildConfig.DEBUG)
+                Log.e("aircraft", string)
         }
 
         fun Context.toast(string: String) {

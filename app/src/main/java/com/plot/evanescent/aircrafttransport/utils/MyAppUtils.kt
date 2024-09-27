@@ -36,6 +36,7 @@ class MyAppUtils: ActivityLifecycleCallbacks {
         (myBeforeStops == 1 && myBackTime >= 3).also {
             if (it) {
                 App.myApplication.myHotLaunch = true
+                App.myApplication.getNetViewModel().aircraftFirebase(true)
                 activity.startActivity(Intent(activity, DetermineActivity::class.java))
             }
         }

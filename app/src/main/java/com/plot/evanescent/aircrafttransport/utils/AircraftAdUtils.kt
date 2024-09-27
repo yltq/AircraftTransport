@@ -1,6 +1,10 @@
 package com.plot.evanescent.aircrafttransport.utils
 
+import android.text.TextUtils
 import android.util.Base64
+import com.facebook.FacebookSdk
+import com.facebook.appevents.AppEventsLogger
+import com.github.shadowsocks.preference.DataStore
 import com.plot.evanescent.aircrafttransport.BuildConfig
 import com.plot.evanescent.aircrafttransport.app.App
 import org.json.JSONObject
@@ -35,6 +39,7 @@ class AircraftAdUtils {
         var lest: String = LOCAL_LEST
         var bell: String = LOCAL_BELL
         var good: String = LOCAL_GOOD
+        var kont: String = ""
         var deadValidKey: MutableList<String> = mutableListOf("fb4a", "facebook")
 
         fun gilead(): JSONObject {
@@ -53,6 +58,16 @@ class AircraftAdUtils {
                 this
             }
         }
+
+        fun initAircraftFacebook(k: String) {
+            val faceId = k.ifEmpty {
+                DataStore.kont
+            }
+            if (TextUtils.isEmpty(faceId)) return
+            FacebookSdk.setApplicationId(faceId)
+            FacebookSdk.sdkInitialize(App.myApplication.applicationContext)
+            AppEventsLogger.activateApp(App.myApplication)
+        }
     }
 
     fun resolveEvenString(string: String) {
@@ -66,8 +81,11 @@ class AircraftAdUtils {
                 lest = it.optString("lest").ifEmpty { LOCAL_LEST }
                 bell = it.optString("bell").ifEmpty { LOCAL_BELL }
                 good = it.optString("good").ifEmpty { LOCAL_GOOD }
+                kont = it.optString("kont").ifEmpty { "" }
+                initAircraftFacebook(kont)
             }.onFailure {
                 AircraftUtils.print("resolveEvenString error:${it.message}")
+                initAircraftFacebook("")
             }
         }
     }

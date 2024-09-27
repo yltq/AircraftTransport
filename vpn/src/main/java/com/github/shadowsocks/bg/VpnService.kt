@@ -187,23 +187,23 @@ class VpnService : BaseVpnService(), BaseService.Interface {
             } catch (e: NameNotFoundException) {
                 Timber.w(e)
             }
-            try {
-                val proxyList = profile.agencys
-                if (!TextUtils.isEmpty(proxyList)) {
-                    val list = proxyList.split(',')
-                    if (list.isNotEmpty()) {
-                        list.forEach {
-                            try {
-                                builder.addDisallowedApplication(it)
-                            } catch (e: NameNotFoundException) {
-                                Timber.w(e)
-                            }
+        }
+        try {
+            val proxyList = profile.agencys
+            if (!TextUtils.isEmpty(proxyList)) {
+                val list = proxyList.split(',')
+                if (list.isNotEmpty()) {
+                    list.forEach {
+                        try {
+                            builder.addDisallowedApplication(it)
+                        } catch (e: NameNotFoundException) {
+                            Timber.w(e)
                         }
                     }
                 }
-            } catch (e: NameNotFoundException) {
-                Timber.w(e)
             }
+        } catch (e: NameNotFoundException) {
+            Timber.w(e)
         }
 
         when (profile.route) {

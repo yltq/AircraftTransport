@@ -94,11 +94,11 @@ class App : Application() {
                 initCache()
                 Core.stopService()
                 showTouch = true
-                if (BuildConfig.DEBUG.not()) Firebase.initialize(this@App)
+                Firebase.initialize(this@App)
                 MobileAds.initialize(this@App)
                 aircraftAdUtils.resolveAdString("")
                 aircraftAdUtils.resolveEvenString("")
-                getNetViewModel().aircraftFirebase()
+                getNetViewModel().aircraftFirebase(true)
                 AircraftUtils.aircraftUUID = AircraftUtils.aircraftUUID.run {
                     val id =
                     if (TextUtils.isEmpty(this)) {
