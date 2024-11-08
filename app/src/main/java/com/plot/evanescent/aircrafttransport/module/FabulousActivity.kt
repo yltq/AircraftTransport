@@ -156,6 +156,7 @@ class FabulousActivity : AppCompatActivity() {
             )
         }
         AircraftFindUtils.adValid("dimily").also {
+            binding.fabulousLayoutHouse.vFabulousAd.visibility = View.GONE
             if (!it) {
                 fabulousLoadNative()
             } else {
