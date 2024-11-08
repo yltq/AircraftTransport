@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -33,14 +34,16 @@ class DetermineActivity : AppCompatActivity() {
     }
 
     private lateinit var information: ConsentInformation
+    private var loadOpenEnable: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        loadOpenEnable = true
         App.myApplication.getNetViewModel().aircraftGetHost()
         App.myApplication.getNetViewModel().aircraftGetServer()
         App.myApplication.getNetViewModel().aircraftMyRefer()
 
-        onBackPressedDispatcher.addCallback( object : OnBackPressedCallback(true) {
+        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 backEnable.run {
                     if (this) {
@@ -79,64 +82,86 @@ class DetermineActivity : AppCompatActivity() {
             else "https://peggy.stablefasttunnel.com/monetary/gazebo",
             "fusiform", JSONObject(), false
         ) {}
+    }
 
+    override fun onResume() {
+        super.onResume()
         determineLoadCmp()
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        loadOpenEnable = true
         App.myApplication.getNetViewModel().aircraftGetHost()
         App.myApplication.getNetViewModel().aircraftGetServer()
         App.myApplication.getNetViewModel().aircraftMyRefer()
-        App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("annex", true)
     }
 
-     private fun determineLoadAd() {
-         App.myApplication.aircraftAdUtils.fabulousLoadNative("dimily") {}
-         App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("build", false)
-         App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("annex", true)
+    override fun onRestart() {
+        super.onRestart()
+        loadOpenEnable = true
+    }
 
-         lifecycleScope.launchWhenResumed {
-             repeat(100) {
-                 delay(100)
-                 if (it >= 10 && AircraftFindUtils.adValid("annex")) {
-                     cancel()
-                     App.myApplication.aircraftPaintUtils.paintOpenOrIn("annex",
-                         this@DetermineActivity, object : AircraftDisplayListener {
-                             override fun beRefused(reason: String) {
-                                 AircraftUtils.print("display annex beRefused: $reason")
-                                 startActivity(Intent(this@DetermineActivity, FabulousActivity::class.java))
-                                 finish()
-                             }
+    private fun determineLoadAd() {
+        lifecycleScope.launch {
+            if (!loadOpenEnable) return@launch
+            var loadAdFinished: Boolean = false //已加载过广告配置
+            repeat(100) {
+                delay(100)
 
-                             override fun startDisplay() {
-                                 AircraftUtils.print("annex startDisplay")
-                             }
+                if ((it in 10 until 40 && (App.myApplication.getNetViewModel().loadServerSuccess &&
+                            App.myApplication.getNetViewModel().loadFirebaseDataSuccess &&
+                            AircraftUtils.aircraftAdminLoadSuccess)) || it >= 40
+                ) {
+                    if (!loadAdFinished) {
+                        loadAdFinished = true
+                        App.myApplication.aircraftAdUtils.fabulousLoadNative("dimily") {}
+                        App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("annex", true)
+                    } else if (AircraftFindUtils.adValid("annex")) {
+                        cancel()
+                        App.myApplication.aircraftPaintUtils.paintOpenOrIn("annex",
+                            this@DetermineActivity, object : AircraftDisplayListener {
+                                override fun beRefused(reason: String) {
+                                    AircraftUtils.print("display annex beRefused: $reason")
+                                    determineToFabulous()
+                                }
 
-                             override fun displayFailed() {
-                                 AircraftUtils.print("annex displayFailed")
-                                 startActivity(Intent(this@DetermineActivity, FabulousActivity::class.java))
-                                 finish()
-                             }
+                                override fun startDisplay() {
+                                    AircraftUtils.print("annex startDisplay")
+                                }
 
-                             override fun displaySuccess() {
-                                 AircraftUtils.print("annex displaySuccess")
-                             }
+                                override fun displayFailed() {
+                                    AircraftUtils.print("annex displayFailed")
+                                    determineToFabulous()
+                                }
 
-                             override fun closed() {
-                                 AircraftUtils.print("annex closed")
-                                 startActivity(Intent(this@DetermineActivity, FabulousActivity::class.java))
-                                 finish()
-                             }
+                                override fun displaySuccess() {
+                                    AircraftUtils.print("annex displaySuccess")
+                                }
 
-                         })
-                 }
-             }.run {
-                 startActivity(Intent(this@DetermineActivity, FabulousActivity::class.java))
-                 finish()
-             }
-         }
-     }
+                                override fun closed() {
+                                    AircraftUtils.print("annex closed")
+                                    loadOpenEnable = false
+                                    determineToFabulous()
+                                }
+
+                            })
+                    }
+                }
+            }.run {
+                determineToFabulous()
+            }
+        }
+    }
+
+    private fun determineToFabulous() {
+        lifecycleScope.launch {
+            delay(273)
+            if (lifecycle.currentState != Lifecycle.State.RESUMED) return@launch
+            startActivity(Intent(this@DetermineActivity, FabulousActivity::class.java))
+            finish()
+        }
+    }
 
     private fun determineLoadCmp() {
         if (!AircraftUtils.aircraftLoadCmp) {
@@ -156,8 +181,6 @@ class DetermineActivity : AppCompatActivity() {
                     UserMessagingPlatform.loadAndShowConsentFormIfRequired(
                         this@DetermineActivity,
                         ConsentForm.OnConsentFormDismissedListener {
-                                loadAndShowError ->
-                            AircraftUtils.print("determineLoadCmp ----OnConsentFormDismissedListener loadAndShowError-------${loadAndShowError?.message}")
                             AircraftUtils.aircraftLoadCmp = true
                             if (!information.canRequestAds()) {
                                 MobileAds.initialize(this)
@@ -167,8 +190,6 @@ class DetermineActivity : AppCompatActivity() {
                     )
                 },
                 {
-                        requestConsentError ->
-                    AircraftUtils.print("determineLoadCmp ----requestConsentError-------${requestConsentError.message}")
                     AircraftUtils.aircraftLoadCmp = true
                     determineLoadAd()
                 })
@@ -176,5 +197,5 @@ class DetermineActivity : AppCompatActivity() {
             determineLoadAd()
         }
     }
-    
+
 }

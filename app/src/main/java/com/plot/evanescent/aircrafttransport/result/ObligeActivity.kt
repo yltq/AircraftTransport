@@ -17,6 +17,7 @@ import com.plot.evanescent.aircrafttransport.utils.AircraftFindUtils
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class ObligeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityObligeBinding
@@ -44,12 +45,26 @@ class ObligeActivity : AppCompatActivity() {
         }
         onBackPressedDispatcher.addCallback( object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (AircraftFindUtils.adValid("young")) {
+                fabulousShowYoung {
+                    finish()
+                }
+            }
+        })
+    }
+
+    private fun fabulousShowYoung(next: () -> Unit) {
+        AircraftFindUtils.enable("young").also {
+            if (!it) {
+                next()
+                return@also
+            }
+            AircraftFindUtils.adValid("young").also {
+                if (it) {
                     App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this@ObligeActivity,
                         object : AircraftDisplayListener {
                             override fun beRefused(reason: String) {
                                 AircraftUtils.print("display young beRefused:$reason")
-                                finish()
+                                next()
                             }
 
                             override fun startDisplay() {
@@ -58,7 +73,7 @@ class ObligeActivity : AppCompatActivity() {
 
                             override fun displayFailed() {
                                 AircraftUtils.print("young displayFailed")
-                                finish()
+                                next()
                             }
 
                             override fun displaySuccess() {
@@ -67,16 +82,55 @@ class ObligeActivity : AppCompatActivity() {
 
                             override fun closed() {
                                 AircraftUtils.print("young closed")
-                                finish()
+                                next()
                             }
 
                         })
                 } else {
-                    finish()
+                    lifecycleScope.launch {
+                        binding.vAdLoading.visibility = View.VISIBLE
+                        App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("young", false)
+                        for (i in 0 until 50) {
+                            delay(100)
+                            if ( AircraftFindUtils.adValid("young")) break
+                        }
+                        binding.vAdLoading.visibility = View.GONE
+                        if ( AircraftFindUtils.adValid("young")) {
+                            App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this@ObligeActivity,
+                                object : AircraftDisplayListener {
+                                    override fun beRefused(reason: String) {
+                                        AircraftUtils.print("display young beRefused:$reason")
+                                        next()
+                                    }
+
+                                    override fun startDisplay() {
+
+                                    }
+
+                                    override fun displayFailed() {
+                                        AircraftUtils.print("young displayFailed")
+                                        next()
+                                    }
+
+                                    override fun displaySuccess() {
+                                        AircraftUtils.print("young displaySuccess")
+                                    }
+
+                                    override fun closed() {
+                                        AircraftUtils.print("young closed")
+                                        next()
+                                    }
+
+                                })
+                        } else {
+                            next()
+                        }
+                    }
                 }
             }
-        })
+        }
     }
+
 
     override fun onRestart() {
         super.onRestart()
@@ -132,7 +186,7 @@ class ObligeActivity : AppCompatActivity() {
                     adDisplayEnable = false
                     binding.vFabulousAdFlot.visibility = View.GONE
                     AircraftUtils.print("fooey displaySuccess")
-                    App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey") {}
+//                    App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey") {}
                 }
 
                 override fun closed() {
@@ -162,38 +216,11 @@ class ObligeActivity : AppCompatActivity() {
 
     private fun obligeClick() {
         binding.vObligeReturn.setOnClickListener {
-            if (AircraftFindUtils.adValid("young")) {
-                App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this,
-                    object : AircraftDisplayListener {
-                        override fun beRefused(reason: String) {
-                            AircraftUtils.print("display young beRefused:$reason")
-                            finish()
-                        }
-
-                        override fun startDisplay() {
-
-                        }
-
-                        override fun displayFailed() {
-                            AircraftUtils.print("young displayFailed")
-                            finish()
-                        }
-
-                        override fun displaySuccess() {
-                            AircraftUtils.print("young displaySuccess")
-                        }
-
-                        override fun closed() {
-                            AircraftUtils.print("young closed")
-                            finish()
-                        }
-
-                    })
-            } else {
-                finish()
-            }
+            if (binding.vAdLoading.visibility == View.VISIBLE) return@setOnClickListener
+            onBackPressedDispatcher.onBackPressed()
         }
         binding.vObligeAccelerate.setOnClickListener {
+            if (binding.vAdLoading.visibility == View.VISIBLE) return@setOnClickListener
             ProfileManager.getCurrentProfileConfig()?.also {
                 ProfileManager.delProfile(it.id)
             }

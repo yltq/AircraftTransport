@@ -47,6 +47,7 @@ class AircraftPaintUtils {
                 return
             }
             listener.startDisplay()
+            AircraftUtils.print("$name----start show ad--connected=${loadAd.loadVpnConnected}---")
             val callback: FullScreenContentCallback by lazy {
                 object : FullScreenContentCallback() {
                     override fun onAdClicked() {
@@ -68,19 +69,20 @@ class AircraftPaintUtils {
 
                     override fun onAdDismissedFullScreenContent() {
                         super.onAdDismissedFullScreenContent()
-                        AircraftUtils.print("$name----start close ad----")
+                        AircraftUtils.print("$name----start close ad----connected=${loadAd.loadVpnConnected}----")
                         listener.closed()
                     }
 
                     override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                         super.onAdFailedToShowFullScreenContent(p0)
+                        AircraftUtils.print("$name----start show ad----connected=${loadAd.loadVpnConnected}---failed----")
                         loadAd.ad = null
                         listener.displayFailed()
                     }
 
                     override fun onAdShowedFullScreenContent() {
                         super.onAdShowedFullScreenContent()
-                        AircraftUtils.print("$name----start show ad----")
+                        AircraftUtils.print("$name----start show ad----connected=${loadAd.loadVpnConnected}---success")
                         loadAd.ad = null
                         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
                             Date()
@@ -134,7 +136,7 @@ class AircraftPaintUtils {
                 listener.beRefused("no_load_ad")
                 return
             }
-            AircraftUtils.print("$name----start show ad----")
+            AircraftUtils.print("$name----start show ad--connected=${loadAd.loadVpnConnected}---")
             listener.startDisplay()
             if (name == "dimily" && loadAd.ad is NativeAd) {
                 val view = LayoutInflater.from(activity).inflate(R.layout.view_house_top_ad, null)

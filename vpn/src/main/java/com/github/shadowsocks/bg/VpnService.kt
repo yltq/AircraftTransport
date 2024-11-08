@@ -174,20 +174,20 @@ class VpnService : BaseVpnService(), BaseService.Interface {
                 .addDnsServer(PRIVATE_VLAN4_ROUTER)
 
         if (profile.ipv6) builder.addAddress(PRIVATE_VLAN6_CLIENT, 126)
-        if (profile.byPassInMain) {
-            try {
-                val defaults = mutableListOf<String>(
-                    packageName
-                ).also {
-                    it.addAll(Core.defaultsAgencyList)
-                }
-                defaults.forEach {
-                    builder.addDisallowedApplication(it)
-                }
-            } catch (e: NameNotFoundException) {
-                Timber.w(e)
-            }
-        }
+//        if (profile.byPassInMain) {
+//            try {
+//                val defaults = mutableListOf<String>(
+//                    packageName
+//                ).also {
+//                    it.addAll(Core.defaultsAgencyList)
+//                }
+//                defaults.forEach {
+//                    builder.addDisallowedApplication(it)
+//                }
+//            } catch (e: NameNotFoundException) {
+//                Timber.w(e)
+//            }
+//        }
         try {
             val proxyList = profile.agencys
             if (!TextUtils.isEmpty(proxyList)) {

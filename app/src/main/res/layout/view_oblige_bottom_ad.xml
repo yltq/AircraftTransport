@@ -21,10 +21,18 @@
             android:layout_marginBottom="12dp"
             android:orientation="vertical">
 
-            <com.google.android.gms.ads.nativead.MediaView
-                android:id="@+id/v_ad_media"
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="136dp" />
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                android:layout_height="136dp">
+
+                <com.google.android.gms.ads.nativead.MediaView
+                    android:id="@+id/v_ad_media"
+                    android:layout_width="match_parent"
+                    android:layout_height="136dp" />
+
+            </androidx.cardview.widget.CardView>
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"

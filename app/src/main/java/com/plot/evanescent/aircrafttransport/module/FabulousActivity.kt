@@ -20,10 +20,10 @@ import com.plot.evanescent.aircrafttransport.app.App
 import com.plot.evanescent.aircrafttransport.databinding.ActivityFabulousBinding
 import com.plot.evanescent.aircrafttransport.result.ImpelActivity
 import com.plot.evanescent.aircrafttransport.result.ObligeActivity
-import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils.Companion.tms_connect
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils.Companion.tms_disconnect
 import com.plot.evanescent.aircrafttransport.utils.AircraftDisplayListener
 import com.plot.evanescent.aircrafttransport.utils.AircraftFindUtils
-import com.plot.evanescent.aircrafttransport.utils.AircraftLoadListener
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.displayChoose
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.displayLocationLimited
@@ -31,7 +31,6 @@ import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.displ
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.go
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.share
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.toast
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -53,14 +52,16 @@ class FabulousActivity : AppCompatActivity() {
         }
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (ProfileManager.isVpnConnecting() || binding.fabulousLayoutHouse.vFabulousConnecting.visibility == View.VISIBLE) {
+                if (ProfileManager.isVpnConnecting()) {
                     toast("VPN is connecting. Please try again later.")
                 } else if (ProfileManager.isVpnStopping()) {
                     cancelConnectionScope()
-                } else if (binding.vFabulousAtTouch.visibility == View.VISIBLE) {
-                    App.myApplication.showTouch = false
-                    binding.vFabulousAtTouch.visibility = View.GONE
-                } else {
+                }
+//                else if (binding.vFabulousAtTouch.visibility == View.VISIBLE) {
+//                    App.myApplication.showTouch = false
+//                    binding.vFabulousAtTouch.visibility = View.GONE
+//                }
+                else {
                     finish()
                 }
             }
@@ -71,13 +72,13 @@ class FabulousActivity : AppCompatActivity() {
             fabulous_bottom00()
             fabulousObserver()
             fabulousClick()
-            App.myApplication.showTouch.also {
-                if (it && !ProfileManager.isVpnConnected()) {
-                    binding.vFabulousAtTouch.visibility = View.VISIBLE
-                } else {
-                    binding.vFabulousAtTouch.visibility = View.GONE
-                }
-            }
+//            App.myApplication.showTouch.also {
+//                if (it && !ProfileManager.isVpnConnected()) {
+//                    binding.vFabulousAtTouch.visibility = View.VISIBLE
+//                } else {
+//                    binding.vFabulousAtTouch.visibility = View.GONE
+//                }
+//            }
         }
     }
 
@@ -89,19 +90,33 @@ class FabulousActivity : AppCompatActivity() {
 
     private var launch = registerForActivityResult(AircraftStartService()) {
         if (it) return@registerForActivityResult
-        fabulous_vpn010()
-        ProfileManager.vpnState = BaseService.State.Connecting
-        App.myApplication.getViewModel().startConnect()
+        connectingScope?.cancel()
+        connectingScope = lifecycleScope.launch {
+            fabulous_vpn010()
+            ProfileManager.vpnState = BaseService.State.Connecting
+            delay(1000)
+            App.myApplication.getViewModel().startConnect()
+        }
     }
 
     override fun onRestart() {
         super.onRestart()
         adDisplayEnable = true
+        if (App.myApplication.getViewModel().stateConnected) {
+            ProfileManager.vpnState = BaseService.State.Connected
+            fabulous_vpn10()
+        } else {
+            ProfileManager.vpnState = BaseService.State.Stopped
+            fabulous_vpn00()
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         adDisplayEnable = true
+        if (App.myApplication.getViewModel().stateConnected && ProfileManager.vpnConnectedTime == 0L) {
+            App.startCounting()
+        }
     }
 
     override fun onDestroy() {
@@ -200,21 +215,22 @@ class FabulousActivity : AppCompatActivity() {
             fabulous_vpn011()
             ProfileManager.vpnState = BaseService.State.Stopping
             repeat(AircraftFindUtils.enable("build").run {
-                val n = if (this) 100 else 20
+                val n = if (this) tms_disconnect * 10 else 20
                 fabulousLoadBuild()
-                fabulousLoadYoung()
-                fabulousLoadNative()
-                App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey") {}
                 n
             }) {
                 delay(100)
                 if (it >= 10 && AircraftFindUtils.adValid("build")) {
                     cancel()
-                    App.myApplication.aircraftPaintUtils.paintOpenOrIn("build", this@FabulousActivity,
+                    App.myApplication.aircraftPaintUtils.paintOpenOrIn("build",
+                        this@FabulousActivity,
                         object : AircraftDisplayListener {
                             override fun beRefused(reason: String) {
                                 AircraftUtils.print("display build beRefused: $reason")
-                                App.myApplication.getViewModel().stopConnect()
+                                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                    App.myApplication.getViewModel().stopConnect()
+                                }
+
                             }
 
                             override fun startDisplay() {
@@ -223,7 +239,9 @@ class FabulousActivity : AppCompatActivity() {
 
                             override fun displayFailed() {
                                 AircraftUtils.print("build displayFailed")
-                                App.myApplication.getViewModel().stopConnect()
+                                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                    App.myApplication.getViewModel().stopConnect()
+                                }
                             }
 
                             override fun displaySuccess() {
@@ -232,14 +250,20 @@ class FabulousActivity : AppCompatActivity() {
 
                             override fun closed() {
                                 AircraftUtils.print("build closed")
-                                fabulousLoadBuild()
-                                App.myApplication.getViewModel().stopConnect()
+                                lifecycleScope.launch {
+                                    delay(274)
+                                    if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                        App.myApplication.getViewModel().stopConnect()
+                                    }
+                                }
                             }
 
                         })
                 }
             }.run {
-                App.myApplication.getViewModel().stopConnect()
+                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                    App.myApplication.getViewModel().stopConnect()
+                }
             }
         }
     }
@@ -252,10 +276,13 @@ class FabulousActivity : AppCompatActivity() {
                 ProfileManager.updateProfile(it)
                 ProfileManager.historyProfile = null
             }
-        if (ProfileManager.isVpnConnected() || ProfileManager.isVpnStopping()) {
+        if (App.myApplication.getViewModel().stateConnected) {
             ProfileManager.vpnState = BaseService.State.Connected
+            if (ProfileManager.vpnConnectedTime == 0L) {
+                App.startCounting()
+            }
             fabulous_vpn10()
-        } else if (ProfileManager.isVpnStopped() || ProfileManager.isVpnConnecting()) {
+        } else {
             ProfileManager.vpnState = BaseService.State.Stopped
             fabulous_vpn00()
         }
@@ -291,99 +318,44 @@ class FabulousActivity : AppCompatActivity() {
 
     fun fabulousClick() {
         binding.fabulousLayoutHouse.vFabulousStart.setOnClickListener {
+            if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@setOnClickListener
             fabulousConnect()
         }
         binding.fabulousLayoutHouse.vFabulousOff.setOnClickListener {
+            if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@setOnClickListener
             fabulousStopConnect()
         }
         binding.vHouse.setOnClickListener {
-            if (ProfileManager.isVpnConnecting() ||
-                binding.fabulousLayoutHouse.vFabulousConnecting.visibility == View.VISIBLE
-            ) {
+            if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@setOnClickListener
+            if (ProfileManager.isVpnConnecting()) {
                 toast("VPN is connecting. Please try again later.")
             } else if (ProfileManager.isVpnStopping()) {
                 cancelConnectionScope()
                 if (binding.fabulousLayoutUniverse.root.visibility == View.VISIBLE) {
-                    AircraftFindUtils.adValid("young").also {
-                        if (it) {
-                            App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this,
-                                object : AircraftDisplayListener {
-                                    override fun beRefused(reason: String) {
-                                        AircraftUtils.print("display young beRefused:$reason")
-                                        fabulous_bottom00()
-                                    }
-
-                                    override fun startDisplay() {
-
-                                    }
-
-                                    override fun displayFailed() {
-                                        AircraftUtils.print("young displayFailed")
-                                        fabulous_bottom00()
-                                    }
-
-                                    override fun displaySuccess() {
-                                        AircraftUtils.print("young displaySuccess")
-                                    }
-
-                                    override fun closed() {
-                                        AircraftUtils.print("young closed")
-                                        fabulous_bottom00()
-                                    }
-
-                                })
-                        } else {
-                            fabulous_bottom00()
-                        }
+                    fabulousShowYoung {
+                        fabulous_bottom00()
                     }
                 } else {
                     fabulous_bottom00()
                 }
             } else {
                 if (binding.fabulousLayoutUniverse.root.visibility == View.VISIBLE) {
-                    AircraftFindUtils.adValid("young").also {
-                        if (it) {
-                            App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this,
-                                object : AircraftDisplayListener {
-                                    override fun beRefused(reason: String) {
-                                        AircraftUtils.print("display young beRefused:$reason")
-                                        fabulous_bottom00()
-                                    }
-
-                                    override fun startDisplay() {
-
-                                    }
-
-                                    override fun displayFailed() {
-                                        AircraftUtils.print("young displayFailed")
-                                        fabulous_bottom00()
-                                    }
-
-                                    override fun displaySuccess() {
-                                        AircraftUtils.print("young displaySuccess")
-                                    }
-
-                                    override fun closed() {
-                                        AircraftUtils.print("young closed")
-                                        fabulous_bottom00()
-                                    }
-
-                                })
-                        } else {
-                            fabulous_bottom00()
-                        }
+                    fabulousShowYoung {
+                        fabulous_bottom00()
                     }
+
                 } else {
                     fabulous_bottom00()
                 }
             }
         }
         binding.vUniverse.setOnClickListener {
-            if (binding.vFabulousAtTouch.visibility == View.VISIBLE) {
-                return@setOnClickListener
-            }
-            if (ProfileManager.isVpnConnecting() ||
-                binding.fabulousLayoutHouse.vFabulousConnecting.visibility == View.VISIBLE) {
+//            if (binding.vFabulousAtTouch.visibility == View.VISIBLE) {
+//                return@setOnClickListener
+//            }
+            if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@setOnClickListener
+            if (ProfileManager.isVpnConnecting()
+            ) {
                 toast("VPN is connecting. Please try again later.")
                 return@setOnClickListener
             }
@@ -413,83 +385,26 @@ class FabulousActivity : AppCompatActivity() {
             }
         }
         binding.vSet.setOnClickListener {
-            if (binding.vFabulousAtTouch.visibility == View.VISIBLE) {
-                return@setOnClickListener
-            }
-            if (ProfileManager.isVpnConnecting() ||
-                binding.fabulousLayoutHouse.vFabulousConnecting.visibility == View.VISIBLE) {
+//            if (binding.vFabulousAtTouch.visibility == View.VISIBLE) {
+//                return@setOnClickListener
+//            }
+            if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@setOnClickListener
+            if (ProfileManager.isVpnConnecting()
+            ) {
                 toast("VPN is connecting. Please try again later.")
             } else if (ProfileManager.isVpnStopping()) {
                 cancelConnectionScope()
                 if (binding.fabulousLayoutUniverse.root.visibility == View.VISIBLE) {
-                    AircraftFindUtils.adValid("young").also {
-                        if (it) {
-                            App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this,
-                                object : AircraftDisplayListener {
-                                    override fun beRefused(reason: String) {
-                                        AircraftUtils.print("display young beRefused:$reason")
-                                        fabulous_bottom10()
-                                    }
-
-                                    override fun startDisplay() {
-
-                                    }
-
-                                    override fun displayFailed() {
-                                        AircraftUtils.print("young displayFailed")
-                                        fabulous_bottom10()
-                                    }
-
-                                    override fun displaySuccess() {
-                                        AircraftUtils.print("young displaySuccess")
-                                    }
-
-                                    override fun closed() {
-                                        AircraftUtils.print("young closed")
-                                        fabulous_bottom10()
-                                    }
-
-                                })
-                        } else {
-                            fabulous_bottom10()
-                        }
+                    fabulousShowYoung {
+                        fabulous_bottom10()
                     }
                 } else {
                     fabulous_bottom10()
                 }
             } else {
                 if (binding.fabulousLayoutUniverse.root.visibility == View.VISIBLE) {
-                    AircraftFindUtils.adValid("young").also {
-                        if (it) {
-                            App.myApplication.aircraftPaintUtils.paintOpenOrIn("young", this,
-                                object : AircraftDisplayListener {
-                                    override fun beRefused(reason: String) {
-                                        AircraftUtils.print("display young beRefused:$reason")
-                                        fabulous_bottom10()
-                                    }
-
-                                    override fun startDisplay() {
-
-                                    }
-
-                                    override fun displayFailed() {
-                                        AircraftUtils.print("young displayFailed")
-                                        fabulous_bottom10()
-                                    }
-
-                                    override fun displaySuccess() {
-                                        AircraftUtils.print("young displaySuccess")
-                                    }
-
-                                    override fun closed() {
-                                        AircraftUtils.print("young closed")
-                                        fabulous_bottom10()
-                                    }
-
-                                })
-                        } else {
-                            fabulous_bottom10()
-                        }
+                    fabulousShowYoung {
+                        fabulous_bottom10()
                     }
                 } else {
                     fabulous_bottom10()
@@ -508,10 +423,92 @@ class FabulousActivity : AppCompatActivity() {
         binding.fabulousLayoutSet.vFabulousSetPolicy.setOnClickListener {
             "https://www.google.com/".go(this)
         }
-        binding.vFabulousGuide.setOnClickListener {
-            App.myApplication.showTouch = false
-            fabulousConnect()
-            binding.vFabulousAtTouch.visibility = View.GONE
+//        binding.vFabulousGuide.setOnClickListener {
+//            App.myApplication.showTouch = false
+//            fabulousConnect()
+//            binding.vFabulousAtTouch.visibility = View.GONE
+//        }
+    }
+
+
+    private fun fabulousShowYoung(next: () -> Unit) {
+        AircraftFindUtils.enable("young").also {
+            if (!it) {
+                next()
+                return@also
+            }
+            AircraftFindUtils.adValid("young").also {
+                if (it) {
+                    App.myApplication.aircraftPaintUtils.paintOpenOrIn("young",
+                        this@FabulousActivity,
+                        object : AircraftDisplayListener {
+                            override fun beRefused(reason: String) {
+                                AircraftUtils.print("display young beRefused:$reason")
+                                next()
+                            }
+
+                            override fun startDisplay() {
+
+                            }
+
+                            override fun displayFailed() {
+                                AircraftUtils.print("young displayFailed")
+                                next()
+                            }
+
+                            override fun displaySuccess() {
+                                AircraftUtils.print("young displaySuccess")
+                            }
+
+                            override fun closed() {
+                                AircraftUtils.print("young closed")
+                                next()
+                            }
+
+                        })
+                } else {
+                    lifecycleScope.launch {
+                        binding.vFabulousServerLoading.visibility = View.VISIBLE
+                        fabulousLoadYoung()
+                        for (i in 0 until 50) {
+                            delay(100)
+                            if (AircraftFindUtils.adValid("young")) break
+                        }
+                        binding.vFabulousServerLoading.visibility = View.GONE
+                        if (AircraftFindUtils.adValid("young")) {
+                            App.myApplication.aircraftPaintUtils.paintOpenOrIn("young",
+                                this@FabulousActivity,
+                                object : AircraftDisplayListener {
+                                    override fun beRefused(reason: String) {
+                                        AircraftUtils.print("display young beRefused:$reason")
+                                        next()
+                                    }
+
+                                    override fun startDisplay() {
+
+                                    }
+
+                                    override fun displayFailed() {
+                                        AircraftUtils.print("young displayFailed")
+                                        next()
+                                    }
+
+                                    override fun displaySuccess() {
+                                        AircraftUtils.print("young displaySuccess")
+                                    }
+
+                                    override fun closed() {
+                                        AircraftUtils.print("young closed")
+                                        next()
+                                    }
+
+                                })
+                        } else {
+                            next()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -525,84 +522,94 @@ class FabulousActivity : AppCompatActivity() {
                     connectingScope?.cancel()
                     connectingScope = lifecycleScope.launch {
                         repeat(AircraftFindUtils.enable("build").run {
-                            val n = if (this) 100 else 20
+                            val n = if (this) (tms_connect - 1) * 10 else 20
                             fabulousLoadBuild()
                             fabulousLoadYoung()
-                            fabulousLoadNative()
                             App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey") {}
                             n
                         }) {
                             delay(100)
                             if (it >= 10 && AircraftFindUtils.adValid("build")) {
                                 cancel()
-                                App.myApplication.aircraftPaintUtils.paintOpenOrIn("build", this@FabulousActivity,
-                                object : AircraftDisplayListener {
-                                    override fun beRefused(reason: String) {
-                                        AircraftUtils.print("display build beRefused: $reason")
-                                        fabulous_vpn10()
-                                        App.startCounting()
-                                        lifecycleScope.launch {
-                                            delay(250)
-                                            if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                                                val config = ProfileManager.getCurrentProfileConfig()
-                                                val code = if (config == null || config.inSmart) {
-                                                    ""
-                                                } else {
-                                                    config.nCode?:""
+                                App.myApplication.aircraftPaintUtils.paintOpenOrIn("build",
+                                    this@FabulousActivity,
+                                    object : AircraftDisplayListener {
+                                        override fun beRefused(reason: String) {
+                                            AircraftUtils.print("display build beRefused: $reason")
+                                            ProfileManager.vpnState = BaseService.State.Connected
+                                            fabulous_vpn10()
+                                            App.startCounting()
+                                            lifecycleScope.launch {
+                                                delay(250)
+                                                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                                    val config =
+                                                        ProfileManager.getCurrentProfileConfig()
+                                                    val code =
+                                                        if (config == null || config.inSmart) {
+                                                            ""
+                                                        } else {
+                                                            config.nCode ?: ""
+                                                        }
+                                                    go(ObligeActivity::class.java, code)
                                                 }
-                                                go(ObligeActivity::class.java, code)
                                             }
                                         }
-                                    }
 
-                                    override fun startDisplay() {
+                                        override fun startDisplay() {
 
-                                    }
+                                        }
 
-                                    override fun displayFailed() {
-                                        AircraftUtils.print("build displayFailed")
-                                        fabulous_vpn10()
-                                        App.startCounting()
-                                        lifecycleScope.launch {
-                                            delay(250)
-                                            if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                                                val config = ProfileManager.getCurrentProfileConfig()
-                                                val code = if (config == null || config.inSmart) {
-                                                     ""
-                                                } else {
-                                                    config.nCode?:""
+                                        override fun displayFailed() {
+                                            AircraftUtils.print("build displayFailed")
+                                            ProfileManager.vpnState = BaseService.State.Connected
+                                            fabulous_vpn10()
+                                            App.startCounting()
+                                            lifecycleScope.launch {
+                                                delay(250)
+                                                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                                    val config =
+                                                        ProfileManager.getCurrentProfileConfig()
+                                                    val code =
+                                                        if (config == null || config.inSmart) {
+                                                            ""
+                                                        } else {
+                                                            config.nCode ?: ""
+                                                        }
+                                                    go(ObligeActivity::class.java, code)
                                                 }
-                                                go(ObligeActivity::class.java, code)
                                             }
                                         }
-                                    }
 
-                                    override fun displaySuccess() {
-                                        AircraftUtils.print("build displaySuccess")
-                                    }
+                                        override fun displaySuccess() {
+                                            AircraftUtils.print("build displaySuccess")
+                                        }
 
-                                    override fun closed() {
-                                        AircraftUtils.print("build closed")
-                                        fabulousLoadBuild()
-                                        fabulous_vpn10()
-                                        App.startCounting()
-                                        lifecycleScope.launch {
-                                            delay(250)
-                                            if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                                                val config = ProfileManager.getCurrentProfileConfig()
-                                                val code = if (config == null || config.inSmart) {
-                                                    ""
-                                                } else {
-                                                    config.nCode?:""
+                                        override fun closed() {
+                                            AircraftUtils.print("build closed")
+                                            ProfileManager.vpnState = BaseService.State.Connected
+                                            fabulousLoadBuild()
+                                            fabulous_vpn10()
+                                            App.startCounting()
+                                            lifecycleScope.launch {
+                                                delay(250)
+                                                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                                    val config =
+                                                        ProfileManager.getCurrentProfileConfig()
+                                                    val code =
+                                                        if (config == null || config.inSmart) {
+                                                            ""
+                                                        } else {
+                                                            config.nCode ?: ""
+                                                        }
+                                                    go(ObligeActivity::class.java, code)
                                                 }
-                                                go(ObligeActivity::class.java, code)
                                             }
                                         }
-                                    }
 
-                                })
+                                    })
                             }
                         }.run {
+                            ProfileManager.vpnState = BaseService.State.Connected
                             fabulous_vpn10()
                             App.startCounting()
                             delay(250)
@@ -611,7 +618,7 @@ class FabulousActivity : AppCompatActivity() {
                                 val code = if (config == null || config.inSmart) {
                                     ""
                                 } else {
-                                    config.nCode?:""
+                                    config.nCode ?: ""
                                 }
                                 go(ObligeActivity::class.java, code)
                             }
@@ -620,24 +627,33 @@ class FabulousActivity : AppCompatActivity() {
                 }
 
                 BaseService.State.Stopped -> {
+                    ProfileManager.vpnState = BaseService.State.Stopped
+                    val historyProfile = ProfileManager.historyProfile
+                    ProfileManager.historyProfile = null
                     fabulous_vpn00()
                     App.stopCounting()
-                    val code = if (ProfileManager.historyProfile != null) {
-                        if (ProfileManager.historyProfile!!.inSmart) {
+                    fabulousLoadYoung()
+                    AircraftFindUtils.adValid("fooey").also {
+                        if (!it) {
+                            App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey", {})
+                        }
+                    }
+
+                    val code = if (historyProfile != null) {
+                        if (historyProfile.inSmart) {
                             ""
                         } else {
-                            ProfileManager.historyProfile!!.nCode
+                            historyProfile.nCode
                         }
                     } else {
                         val config = ProfileManager.getCurrentProfileConfig()
                         if (config == null || config.inSmart) {
                             ""
                         } else {
-                            config.nCode?:""
+                            config.nCode ?: ""
                         }
                     }
                     go(ObligeActivity::class.java, code)
-                    ProfileManager.historyProfile = null
                 }
 
                 else -> {}
@@ -718,11 +734,13 @@ class FabulousActivity : AppCompatActivity() {
         binding.vHouseRes.isSelected = true
         binding.vUniverseRes.isSelected = false
         binding.vSetRes.isSelected = false
+
+        adDisplayEnable = true
         fabulousResumeRefresh()
-        if (ProfileManager.isVpnConnected() || ProfileManager.isVpnStopping()) {
+        if (App.myApplication.getViewModel().stateConnected) {
             ProfileManager.vpnState = BaseService.State.Connected
             fabulous_vpn10()
-        } else if (ProfileManager.isVpnStopped() || ProfileManager.isVpnConnecting()) {
+        } else {
             ProfileManager.vpnState = BaseService.State.Stopped
             fabulous_vpn00()
         }
@@ -735,11 +753,12 @@ class FabulousActivity : AppCompatActivity() {
         binding.vHouseRes.isSelected = false
         binding.vUniverseRes.isSelected = true
         binding.vSetRes.isSelected = false
-        AircraftFindUtils.adValid("young").also {
+        AircraftFindUtils.adValid("fooey").also {
             if (!it) {
-                App.myApplication.aircraftAdUtils.fabulousLoadOpenOrIn("young", false)
+                App.myApplication.aircraftAdUtils.fabulousLoadNative("fooey", {})
             }
         }
+        fabulousLoadYoung()
     }
 
     fun fabulous_bottom10() {
@@ -776,6 +795,7 @@ class FabulousActivity : AppCompatActivity() {
                     profile?.inSmart ?: true
 
                 binding.fabulousLayoutUniverse.vServerSmart.setOnClickListener {
+                    if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@setOnClickListener
                     (profile?.inSmart ?: true).also {
                         if (it && ProfileManager.isVpnConnected()) {
                             return@setOnClickListener
@@ -802,6 +822,7 @@ class FabulousActivity : AppCompatActivity() {
                     this,
                     ProfileManager.getCurrentProfileConfig(), Pair(headers, children)
                 ) {
+                    if (binding.vFabulousServerLoading.visibility == View.VISIBLE) return@FabulousServerAdapter
                     val profile = ProfileManager.getProfile(DataStore.profileId)
                     val selected =
                         profile != null && !profile.inSmart && profile.host == it.host && profile.remotePort == it.remotePort

@@ -6,17 +6,26 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.TextUtils
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.plot.evanescent.aircrafttransport.BuildConfig
 import com.plot.evanescent.aircrafttransport.app.App
+import com.plot.evanescent.aircrafttransport.app.App.Companion.xor
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils.Companion.LOCAL_CS_ING
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils.Companion.LOCAL_EVEN
+import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils.Companion.LOCAL_FT_ING
 import fuel.FuelBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
@@ -28,6 +37,7 @@ import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.QueryMap
+import java.io.IOException
 import java.util.Locale
 import java.util.UUID
 
@@ -104,6 +114,51 @@ class AircraftUtils {
                 }
             }
 
+        var ftIngCache: String //1表示展示结果页返回插屏+首页原生，2表示不展示结果页返回插屏+首页原生//本地默认写2，其他广告位默认都展示
+            get() {
+                val sharedPref =
+                    App.myApplication.getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
+                return sharedPref.getString("aircraft_ft_ing_cache", LOCAL_FT_ING) ?: LOCAL_FT_ING
+            }
+            set(value) {
+                val sharedPref =
+                    App.myApplication.getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    putString("aircraft_ft_ing_cache", value)
+                    apply()
+                }
+            }
+
+        var csIngCache: String  //1表示买量身份，2表示非买量身份，默认2
+            get() {
+                val sharedPref =
+                    App.myApplication.getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
+                return sharedPref.getString("aircraft_cs_ing_cache", LOCAL_CS_ING) ?: LOCAL_CS_ING
+            }
+            set(value) {
+                val sharedPref =
+                    App.myApplication.getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    putString("aircraft_cs_ing_cache", value)
+                    apply()
+                }
+            }
+
+        var deadCache: String  //总控参数缓存
+            get() {
+                val sharedPref =
+                    App.myApplication.getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
+                return sharedPref.getString("aircraft_dead_cache", LOCAL_EVEN) ?: LOCAL_EVEN
+            }
+            set(value) {
+                val sharedPref =
+                    App.myApplication.getSharedPreferences("aircraft_share", Context.MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    putString("aircraft_dead_cache", value)
+                    apply()
+                }
+            }
+
         fun aircraftInMain(context: Context): Boolean {
             val currentProcessId = android.os.Process.myPid()
             val activityManager =
@@ -113,12 +168,13 @@ class AircraftUtils {
             return processInfo?.processName == context.packageName
         }
 
-        fun aircraftGetMethodInParam(link: String, listP: List<Pair<String, String>>?, loadSuccess: (ResponseBody) -> Unit) {
+        fun aircraftGetMethodInParam(link: String, listP: List<Pair<String, String>>?, map: Map<String, String>, loadSuccess: (ResponseBody) -> Unit) {
             CoroutineScope(Dispatchers.IO).launch {
                 kotlin.runCatching {
                     val fuel = FuelBuilder().build()
                     val response = fuel.get {
                         url = link
+                        headers = map
                         parameters = listP?: arrayListOf()
                     }
                     response
@@ -235,7 +291,6 @@ class AircraftUtils {
                             putOpt("kace", kace)
                         })
                     }
-                    print("aircraftPostJsonMethod -------request---$key--: $j000")
 
                     val requestBody: RequestBody = RequestBody.create(
                         "Content-Type;application/json".toMediaTypeOrNull(),
@@ -352,5 +407,74 @@ class AircraftUtils {
             }
             return "user0"
         }
+
+
+        var aircraftAdminLoadSuccess: Boolean = false //成功获取admin配置信息
+
+        fun String.aircraftAdminType(again: Boolean) {
+            if (this.isEmpty()) return
+            kotlin.runCatching {
+                val json = JSONObject().apply {
+                    putOpt("DSGXAsly", App.myApplication.packageManager.getPackageInfo(App.myApplication.packageName, 0).versionName)
+                    putOpt("eEX", String(Base64.decode("Y29tLnNreXN0cmVhbS5mYXN0bGluay51bmxpbWl0ZWQuc3RhYmxl", Base64.DEFAULT)))
+                    putOpt("jNKdieYYxy", AircraftUtils.aircraftUUID)
+                    putOpt("dBiKf", this@aircraftAdminType)
+                }
+                val sys = System.currentTimeMillis().toString()
+
+                val xor = sys.xor(json.toString())
+                if (xor.isEmpty()) return
+                val encode = String(Base64.encode(xor.toByteArray(), 0))
+
+                val request = Request.Builder()
+                    .url("https://sks.stablefasttunnel.com/api/buww/pwkjq/")
+                    .addHeader("ts", sys)
+                    .addHeader("Content-Type", "text/plain")
+                    .post(encode.toRequestBody("application/json".toMediaType()))
+                    .build()
+                OkHttpClient().newCall(request).enqueue(object : okhttp3.Callback {
+                    override fun onFailure(call: okhttp3.Call, e: IOException) {
+                        print("aircraftAdminType load error-----${e.message}")
+                        if (again) {
+                            this@aircraftAdminType.aircraftAdminType(false)
+                        }
+                    }
+
+                    override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                        if (response.isSuccessful) {
+                            val headers = response.headers
+                            val resultStr = response.body.string()
+                            if (resultStr.isEmpty()) return
+                            val decode = String(Base64.decode(resultStr, Base64.DEFAULT))
+                            val datetime = headers["ts"]?:return
+                            val xorResult = datetime.xor(decode)
+                            if (xorResult.isEmpty()) return
+                            val result = xorResult.replace(Regex("[\\r\\n]"), "")?:return
+                            print("aircraftAdminType load success-------${result}")
+                            kotlin.runCatching {
+                                val json = JSONObject(result)
+                                val detail = json.optJSONObject("PGX")?:return
+                                val conf = detail.getString("conf")
+                                val confJson = JSONObject(conf)
+                                confJson.optString("ft_ing").apply {
+                                    if (this.isNotEmpty()) {
+                                        ftIngCache = this
+                                    }
+                                }
+                                confJson.optString("cs_ing").apply {
+                                    if (this.isNotEmpty()) {
+                                        csIngCache = this
+                                    }
+                                }
+                                aircraftAdminLoadSuccess = true //获取admin配置成功
+                            }
+                        } else {
+                            print("aircraftAdminType load error--------${response.code}")
+                        }
+                    }
+                })
+            }
+        }
+
     }
 }

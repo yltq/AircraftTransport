@@ -18,9 +18,10 @@ import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
 
 class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
     ShadowsocksConnection.Callback {
-    var byPassInMain = {
-        AircraftAdUtils.good == "1" || (AircraftAdUtils.good == "3" && AircraftUtils.aircraftFb() == "user0")
-    }
+//    var byPassInMain = {
+//        AircraftAdUtils.good == "1" || (AircraftAdUtils.good == "3" && AircraftUtils.aircraftFb() == "user0")
+//    }
+    var stateConnected: Boolean = false
     var stateChanged: MutableLiveData<BaseService.State> = MutableLiveData()
     var trafficChanged: MutableLiveData<Map<String, String>> = MutableLiveData()
     var connectAccelerate: MutableLiveData<String> = MutableLiveData()
@@ -38,12 +39,36 @@ class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
     }
 
     override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
-        ProfileManager.vpnState = state
-        stateChanged.postValue(state)
+        when(state) {
+            BaseService.State.Connected -> {
+                stateConnected = true
+                stateChanged.postValue(state)
+            }
+            BaseService.State.Stopped -> {
+                stateConnected = false
+                stateChanged.postValue(state)
+            }
+            else -> {}
+        }
     }
 
     override fun onServiceConnected(service: IShadowsocksService) {
-
+        kotlin.runCatching {
+            val state = BaseService.State.values()[service.state]
+            AircraftUtils.print("onServiceConnected -------${state}")
+            when(state) {
+                BaseService.State.Connected -> {
+                    ProfileManager.vpnState = state
+                    if (ProfileManager.vpnConnectedTime == 0L) {
+                        App.startCounting()
+                    }
+                }
+                BaseService.State.Stopped -> {
+                    ProfileManager.vpnState = state
+                }
+                else -> {}
+            }
+        }
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
@@ -68,7 +93,7 @@ class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
         when(config == null) {
             true -> {
                 val random = ProfileManager.putSmartProfileConfig()?.also {
-                    it.byPassInMain = byPassInMain()
+//                    it.byPassInMain = byPassInMain()
                     it.agencys = AircraftUtils.impelAppsByPassOpen
                     ProfileManager.updateProfile(it)
                     Core.switchProfile(it.id)
@@ -76,7 +101,7 @@ class MyViewModel : ViewModel(), OnPreferenceDataStoreChangeListener,
                 }
             }
             false -> {
-                config.byPassInMain = byPassInMain()
+//                config.byPassInMain = byPassInMain()
                 config.agencys = AircraftUtils.impelAppsByPassOpen
                 ProfileManager.updateProfile(config)
                 Core.switchProfile(config.id)

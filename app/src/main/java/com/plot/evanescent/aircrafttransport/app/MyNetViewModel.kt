@@ -26,6 +26,7 @@ import com.plot.evanescent.aircrafttransport.R
 import com.plot.evanescent.aircrafttransport.result.MyImpelData
 import com.plot.evanescent.aircrafttransport.utils.AircraftAdUtils
 import com.plot.evanescent.aircrafttransport.utils.AircraftUtils
+import com.plot.evanescent.aircrafttransport.utils.AircraftUtils.Companion.aircraftAdminType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -40,8 +41,12 @@ class MyNetViewModel : ViewModel() {
     var loadingSever: Boolean = false
     var loadingApps: MutableLiveData<MutableMap<String, MyImpelData>> = MutableLiveData()
     val fb by lazy { AppEventsLogger.newLogger(App.myApplication) }
+    var loadServerSuccess: Boolean = false //成功加载服务器配置信息
+    var loadFirebaseDataSuccess: Boolean = false //成功加载firebase远端数据
     fun aircraftGetHost() {
-        AircraftUtils.aircraftGetMethodInParam("https://ipinfo.io/json", null) { body ->
+        AircraftUtils.aircraftGetMethodInParam("https://ipinfo.io/json", null,
+        mutableMapOf("User-Agent" to WebView(App.myApplication).settings.userAgentString)
+        ) { body ->
             val result =
                 body.string().takeIf { !TextUtils.isEmpty(it) } ?: return@aircraftGetMethodInParam
             val json = kotlin.runCatching {
@@ -60,15 +65,10 @@ class MyNetViewModel : ViewModel() {
         AircraftUtils.aircraftGetMethodInParam(
             "https://stole.stablefasttunnel.com/ubiquity/goodrich/swishy",
             mutableListOf(
-                Pair("honoree", AircraftUtils.aircraftUUID),
-                Pair("sweeten", App.myApplication.gaid),
-                Pair("horny", Build.BRAND),
-                Pair("slept", System.currentTimeMillis().toString()),
                 Pair("casanova", BuildConfig.VERSION_NAME),
                 Pair("calculi", "chimera"),
-                Pair("opt", AircraftUtils.aircraftUUID),
-                Pair("claim", BuildConfig.APPLICATION_ID)
-            )
+                Pair("claim", String(Base64.decode("Y29tLnNreXN0cmVhbS5mYXN0bGluay51bmxpbWl0ZWQuc3RhYmxl", Base64.DEFAULT)))
+            ), mutableMapOf()
         ) { body ->
             AircraftUtils.aircraftCloak = body.string()
         }
@@ -143,7 +143,7 @@ class MyNetViewModel : ViewModel() {
                         }
                     }
                 }
-
+                loadServerSuccess = true //成功加载服务器列表信息
             }
         }.onFailure {
             AircraftUtils.print("aircraftResolveServerJson error:${it.message}")
@@ -201,6 +201,8 @@ class MyNetViewModel : ViewModel() {
         CoroutineScope(Dispatchers.IO).launch {
             App.myApplication.sharedPref.getString("aircraft_my_refer", "").also {
                 if (!TextUtils.isEmpty(it)) {
+                    App.myApplication.myAppRefer = it!!
+                    App.myApplication.myAppRefer.aircraftAdminType(true)
                     cancel()
                     return@launch
                 }
@@ -213,6 +215,8 @@ class MyNetViewModel : ViewModel() {
                                         it.installReferrer
                                     }.onSuccess {
                                         App.myApplication.myAppRefer = it?.installReferrer ?: ""
+                                        App.myApplication.myAppRefer.aircraftAdminType(true)
+
                                         App.myApplication.sharedPref.edit().putString("aircraft_my_refer", App.myApplication.myAppRefer).apply()
                                         AircraftUtils.aircraftPostJsonMethod(
                                             if (BuildConfig.DEBUG)
@@ -279,7 +283,7 @@ class MyNetViewModel : ViewModel() {
 
     fun aircraftFirebase(next: Boolean) {
         BuildConfig.DEBUG.also {
-//            if (it) return
+            if (it) return
             val remote = Firebase.remoteConfig
             remote.fetchAndActivate().addOnCompleteListener {
                 if (it.isSuccessful) {
@@ -294,12 +298,19 @@ class MyNetViewModel : ViewModel() {
                             App.myApplication.aircraftAdUtils.resolveFbString(it)
                         }
                     }
-                    remote.getString("sake").also {
+//                    remote.getString("sake").also {
+//                        if (it.isNotEmpty()) {
+//                            App.myApplication.aircraftAdUtils.resolveAdString(it)
+//                        }
+//                    }
+
+                    remote.getString("sky_vas").also {
                         if (it.isNotEmpty()) {
-                            App.myApplication.aircraftAdUtils.resolveAdString(it)
+                            App.myApplication.aircraftAdUtils.resolveAdMode2String(it)
                         }
                     }
 
+                    loadFirebaseDataSuccess = true //成功获取firebase配置
                 } else {
                     if (!next) {
                         AircraftAdUtils.initAircraftFacebook("")

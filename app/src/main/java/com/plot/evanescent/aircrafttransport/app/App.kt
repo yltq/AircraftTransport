@@ -47,6 +47,26 @@ class App : Application() {
         var myApplication: App by Delegates.notNull()
         var myCountingJob: Job? = null
 
+        fun String.xor(s2: String): String {
+            if (TextUtils.isEmpty(this) || TextUtils.isEmpty(s2)) return ""
+            val result = StringBuilder()
+            when(this.length <= s2.length) {
+                true -> {
+                    for (i in s2.indices) {
+                        val xorValue = this[i % this.length].code xor s2[i].code
+                        result.append(xorValue.toChar())
+                    }
+                }
+                else -> {
+                    for (i in this.indices) {
+                        val xorValue = this[i].code xor s2[i % s2.length].code
+                        result.append(xorValue.toChar())
+                    }
+                }
+            }
+            return result.toString()
+        }
+
         fun startCounting() {
             myCountingJob?.cancel()
             ProfileManager.vpnConnectedTime = 0
@@ -96,7 +116,7 @@ class App : Application() {
                 showTouch = true
                 Firebase.initialize(this@App)
                 MobileAds.initialize(this@App)
-                aircraftAdUtils.resolveAdString("")
+                aircraftAdUtils.resolveAdMode2String("")
                 aircraftAdUtils.resolveEvenString("")
                 getNetViewModel().aircraftFirebase(true)
                 AircraftUtils.aircraftUUID = AircraftUtils.aircraftUUID.run {
