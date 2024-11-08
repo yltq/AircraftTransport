@@ -304,7 +304,7 @@ class MyNetViewModel : ViewModel() {
 //                        }
 //                    }
 
-                    remote.getString("sky_vas").also {
+                    remote.getString("sake").also {
                         if (it.isNotEmpty()) {
                             App.myApplication.aircraftAdUtils.resolveAdMode2String(it)
                         }
